@@ -1,0 +1,15 @@
+{
+  "name": "Kabbaret: La Audición",
+  "short_name": "Kabbaret",
+  "description": "Una noche, cinco integrantes y una audición que no se puede perder. Rescata a la banda por Bogotá en este juego 16-bit de Kabbaret.",
+  "lang": "es-CO",
+  "start_url": ".",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#0b0718",
+  "theme_color": "#0b0718",
+  "icons": [
+    { "src": "icon_192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon_512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
