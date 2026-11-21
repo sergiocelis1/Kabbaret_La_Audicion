@@ -1,4 +1,9 @@
+<!DOCTYPE html>
+<html lang="es">
 <meta charset="utf-8">
+<!-- móvil: ancho real del dispositivo, sin zoom accidental al tocar rápido, y pantalla completa hasta los bordes (notch incluido; las zonas seguras se respetan con env()) -->
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
 <title>Kabbaret: La Audición</title>
 <meta name="description" content="Una noche, cinco integrantes y una audición que no se puede perder. Rescata a la banda por Bogotá en este juego 16-bit de Kabbaret.">
 <!-- vista previa al compartir el enlace (WhatsApp, redes). Cuando el juego tenga su propia dirección, og:image y og:url deben ser direcciones completas -->
@@ -38,15 +43,25 @@
   --pixel:"Press Start 2P", "Courier New", monospace;
   --read:"VT323", "Courier New", monospace;
   color-scheme:dark;
+  /* zonas seguras del celular (notch, isla, barra de inicio); 0 en escritorio */
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
 }
 [hidden]{display:none!important}
-html,body{height:100%;background:#000;color:var(--ink);overflow:hidden}
+/* pantalla completa en el celular: sin márgenes, sin scroll de la página, sin rebote ni «tirar para recargar».
+   body fijo al viewport visible; 100dvh sigue la barra del navegador (100% como respaldo en navegadores sin dvh) */
+html,body{margin:0;padding:0;width:100%;height:100%;background:#000;color:var(--ink);overflow:hidden;overscroll-behavior:none}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+body{position:fixed;top:0;left:0;width:100vw;width:100%;height:100%;height:100dvh}
+img{-webkit-user-drag:none;-webkit-touch-callout:none}
+button,a,[role="button"]{touch-action:manipulation;-webkit-touch-callout:none}
 html.bgBlack,html.bgBlack body{background:#000}
 body{font-family:var(--read);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-#app{position:relative;height:100%;max-width:520px;margin:0 auto;overflow:hidden;
-  padding-left:max(0px, env(safe-area-inset-left, 0px));padding-right:max(0px, env(safe-area-inset-right, 0px))}
-#wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-canvas{image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;display:block;background:#000}
+#app{position:relative;box-sizing:border-box;width:100%;height:100%;max-width:520px;margin:0 auto;overflow:hidden;
+  padding-left:var(--sl);padding-right:var(--sr)}
+/* el canvas se ajusta al área segura (fuera del notch y de la barra de inicio); fit() lo escala sin deformar */
+#wrap{position:absolute;top:var(--st);bottom:var(--sb);left:var(--sl);right:var(--sr);display:flex;align-items:center;justify-content:center}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;display:block;background:#000;flex:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 /* pantalla de carga */
 #sLoad{position:absolute;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .5s;overflow:hidden}
 #sLoad.out{opacity:0;pointer-events:none}
@@ -66,7 +81,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;d
 /* menú de opciones (botón de tres líneas arriba a la derecha) */
 #sMenu{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(5,3,12,.78);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 #sMenu[hidden]{display:none}
-#sRotate{display:none;position:fixed;inset:0;z-index:999;background:var(--night);flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:16px}
+#sRotate{display:none;position:fixed;inset:0;z-index:999;background:var(--night);flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:max(16px,var(--st)) max(16px,var(--sr)) max(16px,var(--sb)) max(16px,var(--sl))}
 @media (orientation:landscape) and (pointer:coarse) and (max-height:600px){#sRotate{display:flex}}
 #sRotate .rotPhone{width:34px;height:58px;border:4px solid var(--gold);border-radius:6px;position:relative;animation:rotPh 2.4s ease-in-out infinite;box-shadow:4px 4px 0 #000}
 #sRotate .rotPhone::after{content:"";position:absolute;left:50%;bottom:4px;width:8px;height:4px;margin-left:-4px;background:var(--gold)}
@@ -79,12 +94,12 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;d
 .menuPanel h2{font:13px var(--pixel);color:var(--gold);margin:0 0 4px;letter-spacing:.12em}
 .menuNote{font:17px var(--read);color:var(--muted);line-height:1.15;text-align:center;margin:0;max-width:28ch}
 .menuNote[hidden]{display:none}
-#mute{position:absolute;top:8px;right:10px;z-index:60;background:none;border:0;padding:0;cursor:pointer;line-height:0;opacity:.85}
+#mute{position:absolute;top:calc(max(8px, var(--st)) - 8px);right:calc(max(10px, var(--sr)) - 8px);z-index:60;background:none;border:0;padding:8px;cursor:pointer;line-height:0;opacity:.85;touch-action:manipulation}
 #mute img{width:36px;height:30px;image-rendering:pixelated;display:block}
 #mute:focus{outline:none}
 button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
 
-#dlg{position:absolute;left:10px;right:10px;bottom:14px;z-index:45;display:flex;gap:10px;align-items:flex-start;
+#dlg{position:absolute;left:10px;right:10px;bottom:calc(14px + var(--sb));z-index:45;display:flex;gap:10px;align-items:flex-start;
   background:var(--panel);border:3px solid var(--ink);box-shadow:0 0 0 3px var(--night),0 0 0 6px var(--violet);padding:10px;cursor:pointer;min-height:100px}
 #dlg img{width:72px;height:72px;flex:none;image-rendering:pixelated;border:2px solid var(--violet);object-fit:cover;background:var(--night)}
 #dlg .body{flex:1;min-width:0}
@@ -101,7 +116,8 @@ button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid 
 
 .screen{position:absolute;inset:0;z-index:40;background:var(--night);overflow-y:auto;overflow-x:hidden;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;
-  padding-block:20px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+  padding-block:calc(20px + var(--st)) calc(20px + var(--sb));padding-left:max(16px, var(--sl));padding-right:max(16px, var(--sr));
+  box-sizing:border-box;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .screen h1,.screen h2{font-family:var(--pixel);font-weight:400;margin:0;text-wrap:balance;line-height:1.5}
 .screen h1{font-size:14px;color:var(--gold)}
 .screen h2{font-size:11px;color:var(--neon)}
@@ -181,7 +197,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 .pixbtn:focus,.pixbtn:focus-visible{outline:none}  /* sin recuadro azul de foco */
 .pixbtn{-webkit-tap-highlight-color:transparent}
 /* mapa de la banda: más aire, todo un poco más abajo, texto del cartel más grande y botón de nivel en pixel art */
-#sMap{background:#000;justify-content:flex-start;gap:18px;padding-top:52px}
+#sMap{background:#000;justify-content:flex-start;gap:18px;padding-top:calc(52px + var(--st))}
 #sMap .clock{display:flex;flex-direction:column;gap:8px}
 #sMap .clock b{font:400 16px var(--pixel);color:var(--neon)}
 #sMap .clock span{font-size:10px;color:var(--gold)}
@@ -190,7 +206,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 
 #sMap .ctas{margin-top:6px}
 @media (prefers-reduced-motion:reduce){.cta{animation:none}}
-#sAviso{background:#000;gap:10px;text-align:center;justify-content:flex-start;padding-top:18px;padding-bottom:16px}
+#sAviso{background:#000;gap:10px;text-align:center;justify-content:flex-start;padding-top:calc(18px + var(--st));padding-bottom:calc(16px + var(--sb))}
 #sAviso p{font-size:16px;margin:0 auto}
 #sAviso > :not(.spk){position:relative}
 #sAviso p.small{font-size:14px;line-height:1.35}
@@ -204,8 +220,8 @@ a.pixbtn{width:max-content;text-decoration:none}
 #sAviso p{max-width:320px;margin:0 auto;line-height:1.5}
 #bAviso{margin-top:16px;opacity:0;pointer-events:none;transition:opacity .4s}
 #bAviso.on{opacity:1;pointer-events:auto}
-#devBtn{position:fixed;left:8px;top:8px;z-index:60;font:8px var(--pixel);padding:8px 10px;background:#ff4fd8;color:#14061f;border:2px solid #000;box-shadow:0 3px 0 #7a1f6b;cursor:pointer}
-#devPanel{position:fixed;left:8px;top:44px;z-index:61;width:min(300px,calc(100% - 16px));max-height:calc(100% - 60px);overflow:auto;background:#140d26;border:2px solid #ff4fd8;padding:10px;box-sizing:border-box}
+#devBtn{position:fixed;left:calc(8px + var(--sl));top:calc(8px + var(--st));z-index:60;font:8px var(--pixel);padding:8px 10px;background:#ff4fd8;color:#14061f;border:2px solid #000;box-shadow:0 3px 0 #7a1f6b;cursor:pointer}
+#devPanel{position:fixed;left:calc(8px + var(--sl));top:calc(44px + var(--st));z-index:61;width:min(300px,calc(100% - 16px));max-height:calc(100% - 60px);overflow:auto;background:#140d26;border:2px solid #ff4fd8;padding:10px;box-sizing:border-box}
 #devPanel[hidden]{display:none!important}
 .devHead{display:flex;justify-content:space-between;align-items:center;font:9px var(--pixel);color:#ff4fd8;margin-bottom:8px}
 .devHead button{background:none;border:0;color:#fff;font-size:16px;cursor:pointer}
@@ -228,7 +244,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 .tmGroup{display:flex;flex-direction:column;gap:12px;align-items:center}
 .tmGroup[hidden]{display:none}
 /* pase de camerino: credencial de backstage colgada de un cordón, con borde holográfico */
-#sPase{justify-content:flex-start;padding-top:0;gap:0;background:linear-gradient(rgba(11,7,24,.25),rgba(11,7,24,.12) 45%,rgba(11,7,24,.45)),url(bg_backstage.jpg) 50% 100%/cover no-repeat,#0b0718}
+#sPase{justify-content:flex-start;padding-top:var(--st);gap:0;background:linear-gradient(rgba(11,7,24,.25),rgba(11,7,24,.12) 45%,rgba(11,7,24,.45)),url(bg_backstage.jpg) 50% 100%/cover no-repeat,#0b0718}
 .paseStage{display:none}
 .paseStage i{position:absolute;top:-10%;width:60%;height:120%;background:linear-gradient(rgba(255,79,216,.18),rgba(255,79,216,0) 75%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);transform-origin:50% 0;animation:paseBeam 7s ease-in-out infinite}
 .paseStage i:first-child{left:-18%;transform:rotate(-18deg)}
@@ -338,7 +354,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 #sIntro .hx{position:absolute;top:66%;left:28px;right:28px;display:flex;flex-direction:column;align-items:center;gap:10px;animation:fadeIn .9s 2.1s both}
 #sIntro .hx b{font:11px var(--pixel);font-weight:400;color:var(--gold);letter-spacing:.3em;padding-left:.3em}
 #sIntro .hx p{font-size:24px;color:#d9d3e6;line-height:1.1;max-width:28ch}
-#sIntro #bIntro{position:absolute;bottom:max(6%, 24px);left:0;right:0;margin:0 auto;width:max-content;animation:fadeIn .6s 2.7s both}
+#sIntro #bIntro{position:absolute;bottom:max(6%, calc(24px + var(--sb)));left:0;right:0;margin:0 auto;width:max-content;animation:fadeIn .6s 2.7s both}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes ruleIn{from{width:0}to{width:28px}}
 @media (prefers-reduced-motion:reduce){#sIntro *{animation-duration:.01s!important;animation-delay:0s!important}}
@@ -351,7 +367,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 .moves span{font:7px var(--pixel);background:var(--panel);border:2px solid var(--violet);padding:8px 4px;color:var(--ink);line-height:1.4}
 
 /* versus: fondo negro con destellos (como la advertencia); jugador | VS | jefe centrados y el botón abajo */
-#sVS{background:#000;justify-content:center;gap:clamp(28px,6vh,56px);padding:28px 18px}
+#sVS{background:#000;justify-content:center;gap:clamp(28px,6dvh,56px);padding:calc(28px + var(--st)) max(18px,var(--sr)) calc(28px + var(--sb)) max(18px,var(--sl))}
 #sVS > :not(.spk){position:relative}
 /* retratos anclados a la línea central de la pantalla: cada uno a la misma distancia fija del centro (sin rejilla, que Safari medía distinto) */
 .vs{--sz:min(30vw,130px);position:relative;width:100%;height:var(--sz)}
@@ -390,7 +406,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 
 #sFicha{perspective:900px;background:#000}
 #sFicha > :not(.spk),#sMap > :not(.spk){position:relative}
-#sFicha,#sMap{justify-content:space-evenly;gap:0;padding-block:40px 28px}
+#sFicha,#sMap{justify-content:space-evenly;gap:0;padding-block:calc(40px + var(--st)) calc(28px + var(--sb))}
 #sFicha .ctas,#sMap .ctas{margin:0 auto}
 #sFicha p.small,#sMap p.small{font-size:22px!important;line-height:1.15;color:#d9d3e6!important;max-width:26ch}
 #sFicha .unlock{font:12px var(--pixel);color:var(--ok);line-height:1.6;animation:blink .6s steps(2) 4}
@@ -403,7 +419,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 .stats{display:grid;grid-template-columns:auto auto;gap:4px 14px;font-size:21px;text-align:left;margin:0}
 .stats dt{color:var(--muted)} .stats dd{margin:0;color:var(--gold);font-variant-numeric:tabular-nums}
 
-#sOver{background:#000;gap:30px;padding:28px 22px}
+#sOver{background:#000;gap:30px;padding:calc(28px + var(--st)) max(22px,var(--sr)) calc(28px + var(--sb)) max(22px,var(--sl))}
 #sOver > :not(.spk){position:relative}
 #sOver h2{font:20px var(--pixel);color:var(--neon);background:none!important;border:0!important;box-shadow:none!important;padding:0;margin:0;animation:avGlow 1.6s ease-in-out infinite}
 #sOver .quote-card{border:2px solid #3b2f66;border-radius:6px;padding:16px;gap:16px;max-width:320px;background:#0b0718}
@@ -413,7 +429,7 @@ a.pixbtn{width:max-content;text-decoration:none}
 .quote-card{border:2px solid var(--edge);padding:12px;max-width:340px;display:flex;gap:12px;align-items:center;text-align:left}
 .quote-card img{width:64px;height:64px;border:2px solid var(--neon);flex:none}
 /* despedida tranquila: sin música, texto simple que aparece despacio */
-#sEnd{background:#000;justify-content:space-evenly;padding:40px 22px 28px}
+#sEnd{background:#000;justify-content:space-evenly;padding:calc(40px + var(--st)) max(22px,var(--sr)) calc(28px + var(--sb)) max(22px,var(--sl))}
 #sEnd > :not(.spk){position:relative}
 #sEnd .endHead{display:flex;flex-direction:column;align-items:center;gap:12px}
 #sEnd .ctas{gap:16px}

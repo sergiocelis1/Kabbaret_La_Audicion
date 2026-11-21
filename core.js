@@ -8,8 +8,24 @@ const cv = $('cv');
 let ctx = cv.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
-function fit(){ const w = $('wrap').clientWidth, h = $('wrap').clientHeight, s = Math.min(w/W, h/H); cv.style.width = (W*s)+'px'; cv.style.height = (H*s)+'px'; }
-addEventListener('resize', fit); fit();
+// el canvas (240×420) se escala lo más grande posible dentro del área segura, sin deformar: misma escala en X y en Y.
+// El tamaño se redondea a píxeles físicos enteros para que el pixel art se vea nítido en pantallas de alta densidad.
+function fit(){
+  const wr = $('wrap'), w = wr.clientWidth, h = wr.clientHeight; if (!w || !h) return;
+  const dpr = window.devicePixelRatio || 1, s = Math.min(w/W, h/H);
+  const cw = Math.floor(W*s*dpr) / dpr, ch = Math.floor(cw*H/W*dpr) / dpr;
+  cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
+}
+// se recalcula al girar el teléfono, al mostrarse u ocultarse la barra del navegador y al cambiar el tamaño de la ventana
+let fitRAF = 0; const refit = () => { cancelAnimationFrame(fitRAF); fitRAF = requestAnimationFrame(fit); };
+addEventListener('resize', refit);
+addEventListener('orientationchange', () => { refit(); setTimeout(fit, 250); setTimeout(fit, 600); });   // iOS termina de girar después del evento
+if (window.visualViewport) visualViewport.addEventListener('resize', refit);
+if (window.ResizeObserver) new ResizeObserver(refit).observe($('wrap'));
+fit();
+// táctil: sin zoom por pellizco en iPhone (ignora user-scalable=no) ni menú de «guardar imagen» al mantener el dedo sobre el juego
+['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => document.addEventListener(ev, e => e.preventDefault(), { passive:false }));
+cv.addEventListener('contextmenu', e => e.preventDefault());
 
 const store = {
   get(){ try { return JSON.parse(localStorage.getItem('kab-rescued') || '[]'); } catch(e){ return []; } },
