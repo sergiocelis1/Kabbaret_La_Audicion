@@ -1,0 +1,700 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Kabbaret: La Audición</title>
+<meta name="description" content="Una noche, cinco integrantes y una audición que no se puede perder. Rescata a la banda por Bogotá en este juego 16-bit de Kabbaret.">
+<!-- vista previa al compartir el enlace (WhatsApp, redes): direcciones completas del dominio propio -->
+<link rel="canonical" href="https://kabbaret.com/">
+<meta property="og:url" content="https://kabbaret.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Kabbaret">
+<meta property="og:title" content="Kabbaret: La Audición">
+<meta property="og:description" content="Una noche, cinco integrantes y una audición que no se puede perder. Rescata a la banda por Bogotá en este juego 16-bit de Kabbaret.">
+<meta property="og:image" content="https://kabbaret.com/share.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Carátula de Kabbaret: La Audición y la banda tocando en pixel art">
+<meta property="og:locale" content="es_CO">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kabbaret: La Audición">
+<meta name="twitter:description" content="Una noche, cinco integrantes y una audición que no se puede perder. Rescata a la banda por Bogotá en este juego 16-bit de Kabbaret.">
+<meta name="twitter:image" content="https://kabbaret.com/share.jpg">
+<!-- ícono y modo app al agregarlo a la pantalla de inicio -->
+<link rel="icon" type="image/png" sizes="32x32" href="favicon_32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon_64.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kabbaret">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<style>
+/* Layout: arcade de una pantalla. Canvas pixelado para jugar + capas HTML para cinemáticas, mapa, fichas y VS */
+:root{
+  --night:#0b0718; --panel:#160f2b; --edge:#3b2f66;
+  --ink:#f1ecff; --muted:#a99dd0;
+  --neon:#ff2e4d; --violet:#9b6bff; --cyan:#36d6ff; --gold:#ffd34d; --ok:#3dff8a; --magenta:#ff4fd8;
+  --pixel:"Press Start 2P", "Courier New", monospace;
+  --read:"VT323", "Courier New", monospace;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%;background:#000;color:var(--ink);overflow:hidden}
+html.bgBlack,html.bgBlack body{background:#000}
+body{font-family:var(--read);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#app{position:relative;height:100%;max-width:520px;margin:0 auto;overflow:hidden;
+  padding-left:max(0px, env(safe-area-inset-left, 0px));padding-right:max(0px, env(safe-area-inset-right, 0px))}
+#wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;display:block;background:#000}
+/* pantalla de carga */
+#sLoad{position:absolute;inset:0;z-index:100;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;transition:opacity .5s;overflow:hidden}
+#sLoad.out{opacity:0;pointer-events:none}
+#sLoad > :not(.spk){position:relative}
+#sLoad .spk{position:absolute;left:0;top:0;width:1px;height:1px;border-radius:50%;pointer-events:none;animation:twk 4.5s ease-in-out infinite}
+#sLoad .ldName{font:30px var(--read);color:#f4f1f8;letter-spacing:.06em;margin-bottom:8px}
+#sLoad .ldBar{width:min(78%,290px);height:14px;padding:3px;background:#1a070c;border:3px solid #8a1a2c;box-shadow:0 0 0 3px #000,0 0 0 5px #3d0c16,0 0 16px rgba(255,46,77,.35);image-rendering:pixelated}
+#sLoad .ldBar i{display:block;height:100%;width:0;background:repeating-linear-gradient(90deg,#ff2e4d 0 9px,#c41a36 9px 11px);box-shadow:inset 0 3px 0 #ff8a9c,inset 0 -3px 0 #8a0f22,0 0 8px rgba(255,46,77,.6);transition:width .2s steps(3);position:relative;overflow:hidden}
+#sLoad .ldBar i::after{content:"";position:absolute;top:0;bottom:0;left:0;width:12px;background:rgba(255,255,255,.35);transform:translateX(-12px);animation:ldShine 1.8s steps(12) infinite}
+#sLoad .spk.a{box-shadow:98vw 60vh 0 1px rgba(255,255,255,0.55),32vw 2vh 0 1px rgba(255,255,255,0.55),11vw 15vh 0 0px rgba(255,255,255,0.55),3vw 79vh 0 0px rgba(255,255,255,0.55),61vw 2vh 0 1px rgba(255,255,255,0.55),10vw 7vh 0 0px rgba(255,255,255,0.55),58vw 1vh 0 0px rgba(255,255,255,0.55),11vw 84vh 0 0px rgba(255,255,255,0.55),87vw 86vh 0 0px rgba(255,255,255,0.55),87vw 43vh 0 0px rgba(255,255,255,0.55),2vw 54vh 0 0px rgba(255,255,255,0.55),8vw 90vh 0 0px rgba(255,255,255,0.55),93vw 93vh 0 0px rgba(255,255,255,0.55),11vw 89vh 0 0px rgba(255,255,255,0.55),6vw 55vh 0 0px rgba(255,255,255,0.55),13vw 10vh 0 0px rgba(255,255,255,0.55),4vw 60vh 0 1px rgba(255,255,255,0.55),13vw 56vh 0 1px rgba(255,255,255,0.55),8vw 3vh 0 0px rgba(255,255,255,0.55),71vw 3vh 0 0px rgba(255,255,255,0.55)}
+#sLoad .spk.b{box-shadow:8vw 8vh 0 0px rgba(255,255,255,0.4),86vw 40vh 0 0px rgba(255,255,255,0.4),3vw 4vh 0 1px rgba(255,255,255,0.4),11vw 78vh 0 0px rgba(255,255,255,0.4),4vw 83vh 0 0px rgba(255,255,255,0.4),5vw 95vh 0 0px rgba(255,255,255,0.4),12vw 90vh 0 0px rgba(255,255,255,0.4),58vw 1vh 0 0px rgba(255,255,255,0.4),86vw 33vh 0 1px rgba(255,255,255,0.4),92vw 40vh 0 1px rgba(255,255,255,0.4),13vw 32vh 0 0px rgba(255,255,255,0.4),11vw 38vh 0 0px rgba(255,255,255,0.4),33vw 1vh 0 0px rgba(255,255,255,0.4),9vw 8vh 0 0px rgba(255,255,255,0.4),10vw 14vh 0 0px rgba(255,255,255,0.4),9vw 78vh 0 0px rgba(255,255,255,0.4);animation-duration:6.5s;animation-delay:-3s}
+#sLoad .spk.c{box-shadow:50vw 3vh 0 1px rgba(255,255,255,0.85),2vw 64vh 0 0px rgba(255,255,255,0.85),7vw 12vh 0 0px rgba(255,255,255,0.85),13vw 46vh 0 0px rgba(255,255,255,0.85),87vw 6vh 0 0px rgba(255,255,255,0.85),96vw 51vh 0 1px rgba(255,255,255,0.85);width:2px;height:2px;animation-duration:8s;animation-delay:-1.5s}
+@keyframes ldShine{to{transform:translateX(300px)}}
+#sLoad .ldPct{font:24px var(--read);color:#ff4d66;letter-spacing:.08em;margin-top:4px;text-shadow:0 0 8px rgba(255,46,77,.5)}
+#sLoad .ldMsg{font:26px var(--read);color:#cfc6ea;min-height:1.2em;text-align:center;padding:0 16px}
+@media (prefers-reduced-motion:reduce){#sLoad .ldBar i::after{animation:none}}
+/* menú de opciones (botón de tres líneas arriba a la derecha) */
+#sMenu{position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(5,3,12,.78);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+#sMenu[hidden]{display:none}
+#sRotate{display:none;position:fixed;inset:0;z-index:999;background:var(--night);flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;padding:16px}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:600px){#sRotate{display:flex}}
+#sRotate .rotPhone{width:34px;height:58px;border:4px solid var(--gold);border-radius:6px;position:relative;animation:rotPh 2.4s ease-in-out infinite;box-shadow:4px 4px 0 #000}
+#sRotate .rotPhone::after{content:"";position:absolute;left:50%;bottom:4px;width:8px;height:4px;margin-left:-4px;background:var(--gold)}
+@keyframes rotPh{0%,25%{transform:rotate(-90deg)}55%,100%{transform:rotate(0)}}
+#sRotate h2{font-family:var(--pixel);font-size:13px;color:var(--gold);letter-spacing:1px;text-shadow:2px 2px 0 #000;line-height:1.6}
+#sRotate p{font-family:var(--read);font-size:22px;color:var(--ink);opacity:.85}
+@media (prefers-reduced-motion:reduce){#sRotate .rotPhone{animation:none}}
+.menuPanel{width:min(calc(100% - 32px),320px);box-sizing:border-box;background:linear-gradient(#1a1236,#0e0920);border:3px solid var(--violet);border-radius:10px;padding:22px 16px 18px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 14px 40px rgba(0,0,0,.6),inset 0 0 0 2px #2a1d55;animation:menuPop .25s cubic-bezier(.2,1.4,.4,1)}
+@keyframes menuPop{from{transform:scale(.9);opacity:0}}
+.menuPanel h2{font:13px var(--pixel);color:var(--gold);margin:0 0 4px;letter-spacing:.12em}
+.menuNote{font:17px var(--read);color:var(--muted);line-height:1.15;text-align:center;margin:0;max-width:28ch}
+.menuNote[hidden]{display:none}
+#mute{position:absolute;top:8px;right:10px;z-index:60;background:none;border:0;padding:0;cursor:pointer;line-height:0;opacity:.85}
+#mute img{width:36px;height:30px;image-rendering:pixelated;display:block}
+#mute:focus{outline:none}
+button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+
+#dlg{position:absolute;left:10px;right:10px;bottom:14px;z-index:45;display:flex;gap:10px;align-items:flex-start;
+  background:var(--panel);border:3px solid var(--ink);box-shadow:0 0 0 3px var(--night),0 0 0 6px var(--violet);padding:10px;cursor:pointer;min-height:100px}
+#dlg img{width:72px;height:72px;flex:none;image-rendering:pixelated;border:2px solid var(--violet);object-fit:cover;background:var(--night)}
+#dlg .body{flex:1;min-width:0}
+#dlgName{font:9px var(--pixel);color:var(--gold);letter-spacing:.06em;display:block;margin-bottom:6px;line-height:1.4;white-space:pre-line}
+#dlgText{font-size:23px;line-height:1.05;margin:0;color:var(--ink);overflow-wrap:anywhere}
+#dlg .next{position:absolute;right:10px;bottom:6px;font:9px var(--pixel);color:var(--cyan);animation:blink .8s steps(2) infinite}
+#dlg.narr{border-color:var(--cyan)} #dlg.narr #dlgText{color:var(--cyan)}
+
+#cameo{position:absolute;left:0;right:0;top:11%;z-index:50;display:flex;justify-content:center;pointer-events:none}
+#cameo .card{display:flex;align-items:center;gap:12px;background:var(--panel);border:3px solid var(--neon);box-shadow:0 0 0 3px var(--night),0 0 24px #ff2e4d88;padding:10px 14px 10px 10px;max-width:88%;animation:cameoIn .35s steps(5) both}
+#cameo img{width:84px;height:84px;image-rendering:pixelated;border:3px solid var(--neon);animation:wobble .3s steps(2) infinite}
+#cameo b{font:9px var(--pixel);color:var(--neon);display:block;margin-bottom:6px;line-height:1.4}
+#cameo span{font-size:27px;line-height:1;color:var(--ink)}
+
+.screen{position:absolute;inset:0;z-index:40;background:var(--night);overflow-y:auto;overflow-x:hidden;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;
+  padding-block:20px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.screen h1,.screen h2{font-family:var(--pixel);font-weight:400;margin:0;text-wrap:balance;line-height:1.5}
+.screen h1{font-size:14px;color:var(--gold)}
+.screen h2{font-size:11px;color:var(--neon)}
+.screen p{margin:0;font-size:22px;line-height:1.1;max-width:30ch}
+.small{font-size:19px!important;color:var(--muted)}
+.tag{font:8px var(--pixel);color:var(--cyan);letter-spacing:.12em}
+.btn{font:11px var(--pixel);color:var(--night);background:var(--gold);border:0;padding:14px 18px;cursor:pointer;box-shadow:0 4px 0 #b8901d;text-decoration:none;display:inline-block;letter-spacing:.04em;line-height:1.4}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b8901d}
+.btn.alt{background:var(--violet);color:var(--ink);box-shadow:0 4px 0 #5b3aa8}
+.btn.ghost{background:transparent;color:var(--ink);border:2px solid var(--edge);box-shadow:none}
+.hecho{max-width:300px;margin:4px auto;font:18px var(--read);color:var(--gold);line-height:1.3;text-align:center}
+.ctas{display:flex;flex-direction:column;gap:14px;width:min(100%,280px);margin:6px auto 18px}
+.cta{display:flex;align-items:center;justify-content:center;width:100%;height:52px;box-sizing:border-box;font:11px var(--pixel);letter-spacing:.06em;text-decoration:none;cursor:pointer;color:#fff;border:2px solid rgba(0,0,0,.55);border-radius:4px;position:relative;text-shadow:0 2px 0 rgba(0,0,0,.45);transition:transform .08s,box-shadow .08s;animation:ctaPulse 2.4s ease-in-out infinite}
+.cta::before{content:"";position:absolute;left:4px;right:4px;top:3px;height:40%;background:linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,0));border-radius:2px;pointer-events:none}
+.cta:hover{transform:translateY(-2px)}
+.cta:active{transform:translateY(5px)}
+.ctaRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.cta.icon{height:48px;font-size:8px;letter-spacing:.02em}
+.cta.icon svg{filter:drop-shadow(0 2px 0 rgba(0,0,0,.45));position:relative}
+.cta.ig{background:linear-gradient(#9b4fd0,#833ab4);box-shadow:0 7px 0 #4e1f6e,0 10px 16px rgba(0,0,0,.5)}
+.cta.ig:active{box-shadow:0 2px 0 #4e1f6e,0 3px 6px rgba(0,0,0,.5)}
+.cta.sp{background:linear-gradient(#2fe06d,#1db954);color:#06240f;text-shadow:0 1px 0 rgba(255,255,255,.35);box-shadow:0 7px 0 #0d6b30,0 10px 16px rgba(0,0,0,.5);animation-delay:1.2s}
+.cta.sp:active{box-shadow:0 2px 0 #0d6b30,0 3px 6px rgba(0,0,0,.5)}
+.cta.yt{background:linear-gradient(#ff3b3b,#c4001a);box-shadow:0 7px 0 #6e0010,0 10px 16px rgba(0,0,0,.5)}
+.cta.yt:active{box-shadow:0 2px 0 #6e0010,0 3px 6px rgba(0,0,0,.5)}
+.cta.beer{background:linear-gradient(#ffc93c,#e88a00);color:#2a1400;text-shadow:0 1px 0 rgba(255,255,255,.4);box-shadow:0 7px 0 #8a4f00,0 10px 16px rgba(0,0,0,.5)}
+.cta.beer:active{box-shadow:0 2px 0 #8a4f00,0 3px 6px rgba(0,0,0,.5)}
+.cta.beer.soon{animation:none;filter:saturate(.6)}
+.cta.yt{animation-delay:.8s}.cta.beer{animation-delay:1.6s}
+@keyframes ctaPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+/* íconos de redes estilo app de iPhone: mismo tamaño y misma forma para los tres */
+.cta.icon{height:auto;flex-direction:column;gap:6px;background:none!important;border:0;box-shadow:none!important;text-shadow:none;font:600 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:0;color:#e9e3ff!important}
+.cta.icon::before{display:none}
+.cta.icon.soon{cursor:default}.cta.icon.soon span{color:#a99dd0}
+.cta.icon img{width:62px;height:62px;display:block;border-radius:14px;box-shadow:0 5px 0 rgba(0,0,0,.45),0 8px 14px rgba(0,0,0,.5);transition:transform .08s,box-shadow .08s}
+.cta.icon:active{transform:none}.cta.icon:active img{transform:translateY(4px);box-shadow:0 1px 0 rgba(0,0,0,.45),0 3px 6px rgba(0,0,0,.5)}
+/* advertencia: texto un poco más grande para leer mejor */
+#sAviso .avTxt p{font-size:21px;line-height:1.3}
+#sAviso .avTxt p.small{font-size:22px!important;line-height:1.3}
+#sApoyo{z-index:60;gap:clamp(12px,3.4vh,28px);overflow-y:auto}
+@media (max-height:640px){.apoyoTxt{font-size:21px!important}#bApoyoBack{margin-top:14px!important}}
+#sApoyo h1{font-size:18px;color:#7dff7d;text-shadow:0 3px 0 #0a5a0a}
+.apoyoTxt{color:#d8cff5;max-width:300px;line-height:1.25;margin:0;font-size:24px!important}
+#bWhats img{animation-delay:1.3s}
+#bSponsors img{animation-delay:.9s}
+a.pixbtn{width:max-content;text-decoration:none}
+#bApoyoBack{margin-top:clamp(20px,5vh,48px)}
+.ctaRow.soc4{grid-template-columns:repeat(4,1fr);gap:8px;width:min(100%,300px);margin:6px auto 0}
+.ctaRow.soc4 .cta.icon img{width:54px;height:54px;border-radius:12px}
+.ctaRow.soc4 .cta.icon{font-size:10px}
+/* portada: título «LA AUDICIÓN» como letrero de neón azul y blanco (Bungee), pixelado, bajo la palabra Kabbaret */
+#sTitle .tTitle{display:flex;flex-direction:column;align-items:center;gap:6px;margin:-2px 0 4px;line-height:1}
+#sTitle .tLa{font:11px var(--pixel);color:#ff4fd8;letter-spacing:.35em;text-shadow:0 2px 0 #5a1040;padding-left:.35em}
+#sTitle .tAud{display:block;width:300px;height:132px;image-rendering:pixelated;filter:drop-shadow(0 0 8px rgba(54,214,255,.45));animation:tAudPulse 2.4s ease-in-out infinite}
+@keyframes tAudPulse{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.03)}}
+@media (max-width:360px){#sTitle .tAud{width:240px;height:106px}}
+@media (prefers-reduced-motion:reduce){#sTitle .tAud{animation:none}}
+/* el título va sobre el logo, justo debajo de la palabra Kabbaret */
+#sTitle .logoWrap{position:relative;width:min(100%,340px);line-height:0}
+#sTitle .logoWrap .logo{width:100%;display:block}
+#sTitle .logoWrap .tTitle{position:absolute;left:50%;top:77%;transform:translateX(-50%);margin:0;width:80%}
+#sTitle .logoWrap .tAud{width:100%!important;height:auto!important}
+/* botón CONTINUAR en pixel art (65×15 px, dibujado a ×4) */
+.pixbtn{background:none;border:0;padding:0;cursor:pointer;display:block;margin:0 auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45));transition:transform .08s,filter .08s}
+.pixbtn img{display:block;width:260px;height:60px;image-rendering:pixelated}
+/* botones pixel art a ×3 (195×45) */
+.pixbtn img{width:auto!important;height:45px!important;max-width:calc(100vw - 32px);object-fit:contain}  /* los tres botones del mismo tamaño */
+/* movimiento suave que invita a tocar: un pequeño salto cada pocos segundos */
+@keyframes pixNudge{0%,70%,100%{transform:translateY(0) scale(1)}78%{transform:translateY(-4px) scale(1.03)}86%{transform:translateY(0) scale(.99)}92%{transform:translateY(-1px) scale(1.01)}}
+.pixbtn img{animation:pixNudge 2.6s ease-in-out infinite}
+.pixbtn.apoyo img{animation-delay:1.3s}
+.pixbtn:hover img,.pixbtn:active img{animation:none}
+.pixbtn:hover{transform:translateY(-2px)}
+.pixbtn:active{transform:translateY(3px);filter:brightness(.9) drop-shadow(0 2px 4px rgba(0,0,0,.45))}
+@media (prefers-reduced-motion:reduce){.pixbtn img{animation:none}}
+.pixbtn[hidden]{display:none}
+.pixbtn:focus,.pixbtn:focus-visible{outline:none}  /* sin recuadro azul de foco */
+.pixbtn{-webkit-tap-highlight-color:transparent}
+/* mapa de la banda: más aire, todo un poco más abajo, texto del cartel más grande y botón de nivel en pixel art */
+#sMap{background:#000;justify-content:flex-start;gap:18px;padding-top:52px}
+#sMap .clock{display:flex;flex-direction:column;gap:8px}
+#sMap .clock b{font:400 16px var(--pixel);color:var(--neon)}
+#sMap .clock span{font-size:10px;color:var(--gold)}
+.map .banner b{font-size:13px}
+.map .banner span{font-size:8px!important;line-height:1.7;white-space:pre-line}
+
+#sMap .ctas{margin-top:6px}
+@media (prefers-reduced-motion:reduce){.cta{animation:none}}
+#sAviso{background:#000;gap:10px;text-align:center;justify-content:flex-start;padding-top:18px;padding-bottom:16px}
+#sAviso p{font-size:16px;margin:0 auto}
+#sAviso > :not(.spk){position:relative}
+#sAviso p.small{font-size:14px;line-height:1.35}
+#sAviso h2{font-size:17.6px;margin:0}
+#sAviso .ctas{margin-top:22px;padding-top:0;margin-bottom:0}
+#sAviso .avTxt{display:flex;flex-direction:column;gap:10px;padding-top:8px;margin-top:auto}
+#sAviso .avTxt h2{margin-bottom:14px}
+#sAviso #bAviso{margin-bottom:auto}
+#sAviso h2{color:var(--neon);background:none!important;border:0!important;box-shadow:none!important;padding:0;animation:avGlow 1.6s ease-in-out infinite}
+@keyframes avGlow{50%{text-shadow:0 0 10px #ff2e4d99;filter:brightness(1.15)}}
+#sAviso p{max-width:320px;margin:0 auto;line-height:1.5}
+#bAviso{margin-top:16px;opacity:0;pointer-events:none;transition:opacity .4s}
+#bAviso.on{opacity:1;pointer-events:auto}
+#devBtn{position:fixed;left:8px;top:8px;z-index:60;font:8px var(--pixel);padding:8px 10px;background:#ff4fd8;color:#14061f;border:2px solid #000;box-shadow:0 3px 0 #7a1f6b;cursor:pointer}
+#devPanel{position:fixed;left:8px;top:44px;z-index:61;width:min(300px,calc(100% - 16px));max-height:calc(100% - 60px);overflow:auto;background:#140d26;border:2px solid #ff4fd8;padding:10px;box-sizing:border-box}
+#devPanel[hidden]{display:none!important}
+.devHead{display:flex;justify-content:space-between;align-items:center;font:9px var(--pixel);color:#ff4fd8;margin-bottom:8px}
+.devHead button{background:none;border:0;color:#fff;font-size:16px;cursor:pointer}
+.devGrp{font:7px var(--pixel);color:var(--gold);margin:10px 0 6px}
+.devRow{display:flex;flex-wrap:wrap;gap:6px}
+.devRow button{font:7px var(--pixel);padding:8px 6px;background:#2a1f45;color:#fff;border:1px solid #5a4a8a;cursor:pointer}
+.devRow button:active{transform:translateY(1px)}
+.btn.danger{background:var(--neon);color:var(--ink);box-shadow:0 4px 0 #8a1020}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.mini{font:8px var(--pixel);color:var(--ink);background:var(--panel);border:2px solid var(--violet);padding:8px 10px;cursor:pointer}
+
+#sTitle{cursor:pointer}
+#sTitle .logo{width:min(100%,340px);border:3px solid var(--edge);animation:glow 2.4s ease-in-out infinite}
+@keyframes glow{50%{box-shadow:0 0 28px #ff2e4d66;filter:brightness(1.12)}}
+/* PRESS START y el menú ocupan el mismo alto: la carátula no se mueve al aparecer los botones */
+#pressStart{font:16px var(--pixel);color:var(--gold);text-shadow:3px 3px 0 var(--neon);animation:blink 1s steps(2) infinite;margin-top:8px;height:176px;box-sizing:border-box;padding-top:4px;line-height:1.4}
+.copy{font:7px var(--pixel)!important;color:var(--muted);letter-spacing:.1em;line-height:1.8!important}
+#titleMenu{display:flex;flex-direction:column;gap:12px;align-items:center;justify-content:flex-start;height:176px;margin-top:8px;padding-top:26px;box-sizing:border-box}
+#bPase{margin-top:8px}   /* BACK STAGE un poco separado de MODO HISTORIA */
+.tmGroup{display:flex;flex-direction:column;gap:12px;align-items:center}
+.tmGroup[hidden]{display:none}
+/* pase de camerino: credencial de backstage colgada de un cordón, con borde holográfico */
+#sPase{justify-content:flex-start;padding-top:0;gap:0;background:linear-gradient(rgba(11,7,24,.25),rgba(11,7,24,.12) 45%,rgba(11,7,24,.45)),url(bg_backstage.jpg) 50% 100%/cover no-repeat,#0b0718}
+.paseStage{display:none}
+.paseStage i{position:absolute;top:-10%;width:60%;height:120%;background:linear-gradient(rgba(255,79,216,.18),rgba(255,79,216,0) 75%);clip-path:polygon(45% 0,55% 0,100% 100%,0 100%);transform-origin:50% 0;animation:paseBeam 7s ease-in-out infinite}
+.paseStage i:first-child{left:-18%;transform:rotate(-18deg)}
+.paseStage i:last-child{right:-18%;background:linear-gradient(rgba(54,214,255,.16),rgba(54,214,255,0) 75%);transform:rotate(18deg);animation-delay:-3.5s}
+@keyframes paseBeam{50%{opacity:.45}}
+/* la cinta cuelga desde arriba y entra por la ranura del pase */
+.lanyard{position:absolute;z-index:6;left:50%;top:-36px;margin-left:-25px;width:51px;height:52px;overflow:hidden;background:repeating-linear-gradient(90deg,#d0102a 0 22px,#7a0718 22px 29px,#d0102a 29px 51px);box-shadow:inset 0 0 0 2px rgba(0,0,0,.35)}
+.lanyard span{position:absolute;left:50%;top:0;writing-mode:vertical-rl;font:9px var(--pixel);color:#ffd9de;letter-spacing:.2em;transform:translateX(-50%);white-space:nowrap;animation:lanyardRun 14s linear infinite}
+@keyframes lanyardRun{to{transform:translate(-50%,-50%)}}
+.lanyard::after{content:"";position:absolute;left:0;right:0;bottom:0;height:7px;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.55))}
+.paseSwing{position:relative;z-index:1;width:min(100%,340px);margin-top:36px;transform-origin:50% 0;animation:paseIn .9s cubic-bezier(.2,1.3,.4,1) 2s both,paseSwing 5s ease-in-out 2.9s infinite}   /* primero se ve el backstage con el guardia; luego baja el pase */
+@keyframes paseIn{from{transform:translateY(-110%) rotate(-6deg)}}
+@keyframes paseSwing{0%,100%{transform:rotate(-1.1deg)}50%{transform:rotate(1.1deg)}}
+.paseFoil{padding:3px;border-radius:14px;background:linear-gradient(160deg,#c9a8ff,#9b6bff 35%,#6a3ad6 70%,#9b6bff);box-shadow:0 18px 40px rgba(0,0,0,.6),0 0 24px rgba(155,107,255,.4)}
+@keyframes foil{to{background-position:300% 0}}
+.pase{position:relative;overflow:hidden;border-radius:11px;background:linear-gradient(rgba(23,15,48,.72),rgba(14,9,32,.8));backdrop-filter:blur(1.5px);-webkit-backdrop-filter:blur(1.5px);display:flex;flex-direction:column}
+/* destellos suaves dentro del pase */
+.paseSparks{position:absolute;inset:0;pointer-events:none;z-index:0}
+.paseSparks i{position:absolute;width:3px;height:3px;background:#fff;box-shadow:0 0 6px 2px rgba(255,236,170,.7);opacity:0;animation:spark 3.2s ease-in-out infinite}
+.paseSparks i::before,.paseSparks i::after{content:"";position:absolute;left:1px;top:-3px;width:1px;height:9px;background:rgba(255,255,255,.8)}
+.paseSparks i::after{transform:rotate(90deg)}
+@keyframes spark{0%,100%{opacity:0;transform:scale(.4)}45%{opacity:.9;transform:scale(1)}60%{opacity:0;transform:scale(.6)}}
+.paseSparks i:nth-child(1){left:12%;top:22%;animation-delay:.2s}.paseSparks i:nth-child(2){left:84%;top:30%;animation-delay:1.1s}.paseSparks i:nth-child(3){left:20%;top:58%;animation-delay:2s}.paseSparks i:nth-child(4){left:76%;top:64%;animation-delay:.7s}.paseSparks i:nth-child(5){left:50%;top:44%;animation-delay:2.6s}.paseSparks i:nth-child(6){left:8%;top:86%;animation-delay:1.6s}.paseSparks i:nth-child(7){left:90%;top:88%;animation-delay:.4s}.paseSparks i:nth-child(8){left:62%;top:12%;animation-delay:2.2s}
+.pase::after{content:"";position:absolute;inset:-40% -60%;background:linear-gradient(105deg,transparent 42%,rgba(255,255,255,.13) 50%,transparent 58%);animation:paseShine 4.5s ease-in-out infinite;pointer-events:none}
+@keyframes paseShine{0%,55%{transform:translateX(-60%)}100%{transform:translateX(60%)}}
+.paseClip{position:absolute;z-index:5;top:11px;left:50%;width:62px;height:10px;margin-left:-31px;border-radius:6px;background:#05030c;box-shadow:inset 0 2px 0 rgba(0,0,0,.7),0 0 0 2px #c9c2e6,0 0 0 4px #6d6590}
+.paseHead{position:relative;overflow:hidden;padding:30px 12px 6px;background:radial-gradient(90% 120% at 50% 0%,rgba(255,46,77,.22),rgba(255,46,77,0) 70%)}
+.paseAll{position:absolute;z-index:2;top:22px;right:-38px;transform:rotate(38deg);background:linear-gradient(90deg,#c98a12,#ffd34d 45%,#fff2b8 55%,#ffd34d 65%,#c98a12);color:#3a2400;font:7px var(--pixel);letter-spacing:.14em;padding:5px 40px;box-shadow:0 3px 0 rgba(0,0,0,.4)}
+.paseHeadTxt{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:13px}
+.pase .paseTag{position:relative;font:19px var(--pixel);color:#ffe3e8;letter-spacing:.22em;padding-left:.22em;line-height:1;margin:0;text-shadow:0 0 2px #fff,0 0 6px #ff2e4d,0 0 14px #ff2e4d,0 0 28px rgba(255,46,77,.7)}
+.pase .paseTag::before,.pase .paseTag::after{content:"";position:absolute;top:50%;width:26px;height:2px;background:#ff2e4d;box-shadow:0 0 6px #ff2e4d}
+.pase .paseTag::before{right:calc(100% + 10px)}.pase .paseTag::after{left:calc(100% + 10px)}
+.pase h1{font-size:14px;letter-spacing:.06em;color:#fff;text-shadow:2px 2px 0 var(--neon),0 0 12px rgba(255,46,77,.5)}
+.paseSub{font:7px var(--pixel);color:var(--cyan);letter-spacing:.18em}
+.paseBody{position:relative;z-index:1;padding:8px 14px 14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+.pase .paseTxt{font-size:19px;line-height:1.15;color:var(--ink);max-width:30ch}
+.pase .paseTxt b{color:var(--gold);font-weight:400}
+.paseGrid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 10px;margin:2px 0}
+.paseM{background:none;border:0;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;width:92px;transition:transform .12s;-webkit-tap-highlight-color:transparent;animation:paseM .5s cubic-bezier(.2,1.5,.4,1) both}
+.paseM:nth-child(1){animation-delay:2.65s}.paseM:nth-child(2){animation-delay:2.75s}.paseM:nth-child(3){animation-delay:2.85s}.paseM:nth-child(4){animation-delay:2.95s}.paseM:nth-child(5){animation-delay:3.05s}
+@keyframes paseM{from{transform:translateY(14px) scale(.85);opacity:0}}
+.ppWrap{display:block;padding:3px;border-radius:6px;background:linear-gradient(135deg,#ffd34d,#ff2e88,#36d6ff);box-shadow:0 5px 0 rgba(0,0,0,.45)}
+.paseM .pp{display:block;width:62px;height:62px;border-radius:4px;image-rendering:pixelated}
+.paseM .pn{height:27px;width:auto;image-rendering:pixelated;filter:drop-shadow(0 4px 6px rgba(0,0,0,.45))}
+.paseM:hover,.paseM:focus-visible{transform:translateY(-3px)}
+.paseM:hover .ppWrap,.paseM:focus-visible .ppWrap{box-shadow:0 5px 0 rgba(0,0,0,.45),0 0 16px rgba(255,211,77,.7)}
+.paseM:active{transform:translateY(2px) scale(.97)}
+.paseM:focus{outline:none}
+.paseM.go{animation:paseGo .45s ease-in forwards}
+@keyframes paseGo{40%{transform:scale(1.15)}100%{transform:scale(1.15);opacity:0}}
+.pase .paseNote{font:17px var(--read);color:var(--muted);line-height:1.15;max-width:30ch}
+.paseCode{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:2px;opacity:.75}
+.paseCode .bars{width:150px;height:22px;background:repeating-linear-gradient(90deg,#f1ecff 0 2px,transparent 2px 3px,#f1ecff 3px 4px,transparent 4px 7px,#f1ecff 7px 10px,transparent 10px 11px)}
+.paseCode span:last-child{font:14px var(--read);color:var(--muted);letter-spacing:.2em}
+.paseBtns{display:flex;flex-direction:column;gap:12px;align-items:center;margin:20px 0 10px}
+@media (prefers-reduced-motion:reduce){.paseSwing,.paseFoil,.pase::after,.lanyard span,.paseStage i,.paseM,.paseSparks i{animation:none}}
+/* portada: el letrero de derechos va abajo; los botones aparecen en la misma pantalla al tocar PRESS START */
+#sTitle .copy{position:absolute;left:0;right:0;bottom:max(14px, env(safe-area-inset-bottom, 0px));text-align:center;max-width:none!important;margin:0 auto}
+#titleMenu .pixbtn{animation:menuIn .45s cubic-bezier(.2,1.5,.4,1) both}
+#titleMenu .pixbtn:nth-child(2){animation-delay:.12s}#titleMenu .pixbtn:nth-child(3){animation-delay:.24s}
+@keyframes menuIn{from{transform:translateY(16px) scale(.9);opacity:0}}
+#sTitle.started{cursor:default}
+#pressStart.go{animation:startGo .35s steps(4) forwards}
+@keyframes startGo{to{opacity:0;transform:scale(1.3)}}
+.beta{font:8px var(--pixel)!important;color:var(--neon);border:2px solid var(--neon);padding:8px 10px;line-height:1.8!important;letter-spacing:.08em}
+
+
+#sChat{justify-content:flex-start;background:#0e0920;overflow:hidden;height:100%;box-sizing:border-box;gap:10px}
+.phone{width:min(100%,360px);border:3px solid var(--edge);background:#120c26;display:flex;flex-direction:column;min-height:0;flex:1 1 auto;position:relative;overflow:hidden;box-sizing:border-box}
+.phone header{display:flex;align-items:center;gap:8px;padding:10px;border-bottom:2px solid var(--edge);text-align:left}
+.phone header img{width:36px;height:36px;border:2px solid var(--neon)}
+.phone header b{font:9px var(--pixel);color:var(--ink);display:block}
+.phone header small{font-size:17px;color:var(--ok)}
+.msgs{display:flex;flex-direction:column;gap:8px;padding:12px 10px 18px;flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.chatMore{position:absolute;left:50%;bottom:40px;transform:translateX(-50%);width:46px;height:46px;border-radius:50%;border:2px solid #000;background:var(--gold);color:var(--night);font:14px var(--pixel);cursor:pointer;box-shadow:0 5px 0 #8a5a00,0 8px 14px rgba(0,0,0,.6);animation:bounceDown 1s ease-in-out infinite;z-index:2}
+.chatMore[hidden]{display:none!important}
+.chatMore{background:none!important;border:0!important;box-shadow:none!important;padding:0;width:auto!important;height:auto!important;border-radius:0!important;-webkit-tap-highlight-color:transparent}
+.chatMore img{display:block;width:51px;height:45px;image-rendering:pixelated;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5))}
+.chatMore:focus{outline:none}
+.mini{background:none!important;border:0!important;padding:0!important;cursor:pointer}.mini img{display:block;height:30px;width:auto;image-rendering:pixelated}.mini:focus{outline:none}
+.chatMore .n{position:absolute;top:-8px;right:-8px;min-width:18px;height:18px;border-radius:9px;background:var(--neon);color:#fff;font:8px/18px var(--pixel)}
+@keyframes bounceDown{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,6px)}}
+#bChat{flex:none;margin-bottom:6px}
+.msg{display:flex;gap:6px;align-items:flex-end;max-width:90%;animation:pop .25s steps(3)}
+.msg img{width:30px;height:30px;flex:none;image-rendering:pixelated;border:2px solid var(--edge)}
+.msg div{background:#241a47;padding:6px 8px;text-align:left}
+.msg div b{font:7px var(--pixel);display:block;margin-bottom:4px}
+.msg div span{font-size:20px;line-height:1}
+.msg.me{align-self:flex-end;flex-direction:row-reverse}
+.msg.me div{background:#3a1f6e}
+.typing{font-size:18px;color:var(--muted);text-align:left;padding:0 10px 10px}
+
+#sIntro{background:#000;justify-content:flex-start;padding:0;text-align:center;overflow:hidden}
+.screen .spk{position:absolute;left:0;top:0;width:1px;height:1px;border-radius:50%;pointer-events:none;animation:twk 4.5s ease-in-out infinite}
+.screen .spk.a{box-shadow:98vw 60vh 0 1px rgba(255,255,255,0.55),32vw 2vh 0 1px rgba(255,255,255,0.55),11vw 15vh 0 0px rgba(255,255,255,0.55),3vw 79vh 0 0px rgba(255,255,255,0.55),61vw 2vh 0 1px rgba(255,255,255,0.55),10vw 7vh 0 0px rgba(255,255,255,0.55),58vw 1vh 0 0px rgba(255,255,255,0.55),11vw 84vh 0 0px rgba(255,255,255,0.55),87vw 86vh 0 0px rgba(255,255,255,0.55),87vw 43vh 0 0px rgba(255,255,255,0.55),2vw 54vh 0 0px rgba(255,255,255,0.55),8vw 90vh 0 0px rgba(255,255,255,0.55),93vw 93vh 0 0px rgba(255,255,255,0.55),11vw 89vh 0 0px rgba(255,255,255,0.55),6vw 55vh 0 0px rgba(255,255,255,0.55),13vw 10vh 0 0px rgba(255,255,255,0.55),4vw 60vh 0 1px rgba(255,255,255,0.55),13vw 56vh 0 1px rgba(255,255,255,0.55),8vw 3vh 0 0px rgba(255,255,255,0.55),71vw 3vh 0 0px rgba(255,255,255,0.55)}
+.screen .spk.b{box-shadow:8vw 8vh 0 0px rgba(255,255,255,0.4),86vw 40vh 0 0px rgba(255,255,255,0.4),3vw 4vh 0 1px rgba(255,255,255,0.4),11vw 78vh 0 0px rgba(255,255,255,0.4),4vw 83vh 0 0px rgba(255,255,255,0.4),5vw 95vh 0 0px rgba(255,255,255,0.4),12vw 90vh 0 0px rgba(255,255,255,0.4),58vw 1vh 0 0px rgba(255,255,255,0.4),86vw 33vh 0 1px rgba(255,255,255,0.4),92vw 40vh 0 1px rgba(255,255,255,0.4),13vw 32vh 0 0px rgba(255,255,255,0.4),11vw 38vh 0 0px rgba(255,255,255,0.4),33vw 1vh 0 0px rgba(255,255,255,0.4),9vw 8vh 0 0px rgba(255,255,255,0.4),10vw 14vh 0 0px rgba(255,255,255,0.4),9vw 78vh 0 0px rgba(255,255,255,0.4);animation-duration:6.5s;animation-delay:-3s}
+.screen .spk.c{box-shadow:50vw 3vh 0 1px rgba(255,255,255,0.85),2vw 64vh 0 0px rgba(255,255,255,0.85),7vw 12vh 0 0px rgba(255,255,255,0.85),13vw 46vh 0 0px rgba(255,255,255,0.85),87vw 6vh 0 0px rgba(255,255,255,0.85),96vw 51vh 0 1px rgba(255,255,255,0.85);width:2px;height:2px;animation-duration:8s;animation-delay:-1.5s}
+@keyframes twk{0%,100%{opacity:.25}50%{opacity:1}}
+#sIntro .in{position:absolute;left:0;right:0;top:46%;height:min(84%,440px);transform:translateY(-50%)}
+#sIntro .ch{position:absolute;top:2%;left:0;right:0;font:11px var(--pixel);color:var(--neon);letter-spacing:.4em;padding-left:.4em;text-shadow:0 0 8px #ff2e4d99;animation:fadeIn .8s .2s both}
+#sIntro .num{position:absolute;top:8%;left:0;right:0;height:16%;display:flex;align-items:center;justify-content:center;font:44px var(--pixel);color:var(--neon);text-shadow:0 0 8px #ff2e4d99;animation:fadeIn 1s .4s both}
+#sIntro .num.word{font-size:26px}
+#sIntro .mid{position:absolute;top:36%;left:16px;right:16px;display:flex;flex-direction:column;align-items:center;gap:14px}
+#sIntro .name{font:22px var(--pixel);color:var(--ink);letter-spacing:.12em;padding-left:.12em;animation:fadeIn .8s .9s both}
+#sIntro .rule{width:28px;height:1px;background:#ffffff40;animation:ruleIn .6s 1.3s both}
+#sIntro .ttl{font:26px var(--read);color:var(--neon);line-height:1.05;max-width:none;text-shadow:0 0 8px #ff2e4d66;animation:fadeIn .8s 1.5s both}
+#sIntro .hx{position:absolute;top:66%;left:28px;right:28px;display:flex;flex-direction:column;align-items:center;gap:10px;animation:fadeIn .9s 2.1s both}
+#sIntro .hx b{font:11px var(--pixel);font-weight:400;color:var(--gold);letter-spacing:.3em;padding-left:.3em}
+#sIntro .hx p{font-size:24px;color:#d9d3e6;line-height:1.1;max-width:28ch}
+#sIntro #bIntro{position:absolute;bottom:max(6%, 24px);left:0;right:0;margin:0 auto;width:max-content;animation:fadeIn .6s 2.7s both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes ruleIn{from{width:0}to{width:28px}}
+@media (prefers-reduced-motion:reduce){#sIntro *{animation-duration:.01s!important;animation-delay:0s!important}}
+.scan{position:absolute;inset:0;background:repeating-linear-gradient(0deg,#0000 0 2px,#00000030 2px 4px);pointer-events:none}
+.bars{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;width:100%;align-items:center;animation:fadeUp .4s 1.3s both}
+.bars b{font:8px var(--pixel)}
+.bar{height:10px;background:#2a2240;border:2px solid var(--edge)}
+.bar i{display:block;height:100%;width:0;animation:fill 1s 1.6s steps(12) forwards}
+.moves{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;animation:fadeUp .4s 1.9s both}
+.moves span{font:7px var(--pixel);background:var(--panel);border:2px solid var(--violet);padding:8px 4px;color:var(--ink);line-height:1.4}
+
+/* versus: fondo negro con destellos (como la advertencia); jugador | VS | jefe centrados y el botón abajo */
+#sVS{background:#000;justify-content:center;gap:clamp(28px,6vh,56px);padding:28px 18px}
+#sVS > :not(.spk){position:relative}
+/* retratos anclados a la línea central de la pantalla: cada uno a la misma distancia fija del centro (sin rejilla, que Safari medía distinto) */
+.vs{--sz:min(30vw,130px);position:relative;width:100%;height:var(--sz)}
+.vs .pl{position:absolute;top:0;right:calc(50% + 46px)}
+.vs .bs{position:absolute;top:0;left:calc(50% + 46px)}
+.vs figure{margin:0;line-height:0;position:relative}
+.vs .pl{animation:inL .5s .2s cubic-bezier(.2,.8,.3,1) both}   /* sin steps(): en Safari del iPhone la animación por pasos dejaba el retrato corrido */
+.vs .bs{animation:inR .5s .6s cubic-bezier(.2,.8,.3,1) both}
+.vs img{box-sizing:border-box;width:var(--sz);height:var(--sz);object-fit:cover;display:block}
+.vs .pl img.flip{transform:scaleX(-1)}
+#vsDesc{font:22px var(--read);color:#e9e4f7;line-height:1.2;max-width:30ch;margin:0;text-align:center;animation:fadeUp .4s 1.2s both}
+.vs .pl img{border:3px solid var(--cyan);outline:2px solid #0b3a4d;outline-offset:2px;box-shadow:0 0 12px rgba(54,214,255,.35)}
+/* el jefe: marco rojo que late, aura roja detrás y un temblor amenazante de vez en cuando */
+.vs .pl::before{content:"";position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(closest-side,rgba(54,214,255,.32) 40%,rgba(54,214,255,0) 100%);z-index:-1}   /* aura del jugador, igual de grande que la del jefe para que ambos se vean a la misma distancia */
+.vs .bs::before{content:"";position:absolute;inset:-30px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,46,77,.75) 40%,rgba(255,46,77,0) 100%);animation:bsAura 1.6s ease-in-out infinite;z-index:-1}
+.vs .bs img{border:3px solid #ff2e4d;outline:2px solid #5a0716;outline-offset:2px;animation:bsGlow 1.6s ease-in-out infinite,bsShake 3.2s 1.6s infinite}
+.vs .bs img.flip{transform:scaleX(-1)}
+@keyframes bsGlow{0%,100%{box-shadow:0 0 10px rgba(255,46,77,.55),0 0 0 rgba(255,46,77,0) inset}50%{box-shadow:0 0 26px rgba(255,46,77,.95),0 0 14px rgba(255,46,77,.35) inset}}
+@keyframes bsAura{0%,100%{opacity:.55;transform:scale(.92)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes bsShake{0%,90%,100%{translate:0 0}92%{translate:-2px 1px}94%{translate:2px -1px}96%{translate:-1px -1px}98%{translate:1px 1px}}
+.vs .x{position:absolute;top:0;left:50%;margin-left:-32px;width:64px;height:var(--sz);display:flex;align-items:center;justify-content:center;line-height:1;font:28px var(--pixel);color:var(--gold);text-shadow:0 3px 0 var(--neon);animation:slam .4s 1s steps(5) both}
+#sVS .pixbtn{animation:fadeUp .4s 1.4s both}
+
+#sMap{gap:12px}
+.map{position:relative;width:min(100%,400px);aspect-ratio:1/1;max-width:100%;border:3px solid var(--edge);overflow:hidden;flex:none}
+.map img{position:absolute;inset:0;width:100%;height:100%}
+.map img.rev{opacity:0}
+.map img.rev.on{opacity:1}
+.map img.rev.reveal{animation:reveal 1.6s steps(16) forwards}
+.map .burst{position:absolute;inset:0;background:radial-gradient(circle at var(--bx,50%) 55%,#fff 0,#ffd34d 8%,#ff2e4d33 30%,#0000 55%);opacity:0;pointer-events:none}
+.map .burst.go{animation:burst 1s ease-out}
+.map .banner{position:absolute;left:6%;right:6%;bottom:4%;background:#0b0718e6;border:3px solid var(--gold);padding:8px 6px}
+.map .banner b{font:12px var(--pixel);color:var(--gold);display:block;margin-bottom:6px}
+.map .banner span{font:7px var(--pixel);color:var(--cyan);line-height:1.6;display:block}
+.clock{font:9px var(--pixel);color:var(--neon);line-height:1.6}
+
+#sFicha{perspective:900px;background:#000}
+#sFicha > :not(.spk),#sMap > :not(.spk){position:relative}
+#sFicha,#sMap{justify-content:space-evenly;gap:0;padding-block:40px 28px}
+#sFicha .ctas,#sMap .ctas{margin:0 auto}
+#sFicha p.small,#sMap p.small{font-size:22px!important;line-height:1.15;color:#d9d3e6!important;max-width:26ch}
+#sFicha .unlock{font:12px var(--pixel);color:var(--ok);line-height:1.6;animation:blink .6s steps(2) 4}
+.ficha{position:relative;width:min(100%,340px);max-width:100%;aspect-ratio:1/1;border:3px solid var(--gold);overflow:hidden;box-shadow:0 0 30px #ffd34d55;animation:flip 1.1s cubic-bezier(.2,.8,.2,1) both;flex:none}
+.ficha img{width:100%;height:100%;display:block}
+.ficha::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,#0000 35%,#ffffff66 50%,#0000 65%);transform:translateX(-120%);animation:shine 1.2s 1.1s ease-in-out}
+.caps{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:320px}
+.caps i{width:22px;height:12px;border-radius:10px 10px 0 0;border-bottom:3px solid #0006;display:block}
+.caps i.off{background:#2a2240!important;border-color:#2a2240}
+.stats{display:grid;grid-template-columns:auto auto;gap:4px 14px;font-size:21px;text-align:left;margin:0}
+.stats dt{color:var(--muted)} .stats dd{margin:0;color:var(--gold);font-variant-numeric:tabular-nums}
+
+#sOver{background:#000;gap:30px;padding:28px 22px}
+#sOver > :not(.spk){position:relative}
+#sOver h2{font:20px var(--pixel);color:var(--neon);background:none!important;border:0!important;box-shadow:none!important;padding:0;margin:0;animation:avGlow 1.6s ease-in-out infinite}
+#sOver .quote-card{border:2px solid #3b2f66;border-radius:6px;padding:16px;gap:16px;max-width:320px;background:#0b0718}
+#sOver .quote-card p{font-size:24px;line-height:1.15;margin:0;color:#f4f1f8}
+#sOver #oHint{font-size:24px!important;line-height:1.25;color:#cfc6ea!important;max-width:300px;margin:0}
+#sOver #bOverHome{margin-top:-14px}
+.quote-card{border:2px solid var(--edge);padding:12px;max-width:340px;display:flex;gap:12px;align-items:center;text-align:left}
+.quote-card img{width:64px;height:64px;border:2px solid var(--neon);flex:none}
+/* despedida tranquila: sin música, texto simple que aparece despacio */
+#sEnd{background:#000;justify-content:space-evenly;padding:40px 22px 28px}
+#sEnd > :not(.spk){position:relative}
+#sEnd .endHead{display:flex;flex-direction:column;align-items:center;gap:12px}
+#sEnd .ctas{gap:16px}
+#sEnd .endThanks{font:400 34px var(--read);color:var(--gold);letter-spacing:.02em;line-height:1.1;margin:0;animation:endIn 1.6s ease both}
+#sEnd .endBand{font:24px var(--read)!important;color:var(--gold);line-height:1.25!important;max-width:24ch!important;margin:0;animation:endIn 1.6s ease .5s both}
+#sEnd .ctas{animation:endIn 1.6s ease 1s both}
+#sEnd .endCredit{animation:endIn 1.6s ease 1.4s both}
+@keyframes endIn{from{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){#sEnd *{animation:none!important}}
+#sEnd .endCredit{font:20px var(--read)!important;color:var(--muted);line-height:1.3!important;max-width:40ch;margin:0}
+#sEnd .group{width:min(100%,380px);border:3px solid var(--gold);flex:none}
+@keyframes blink{50%{opacity:0}}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes cameoIn{from{transform:translateX(-120%) rotate(-6deg)}to{transform:none}}
+@keyframes wobble{50%{transform:rotate(-4deg) scale(1.05)}}
+@keyframes slam{0%{transform:scale(3);opacity:0}70%{transform:scale(.9);opacity:1}100%{transform:scale(1)}}
+@keyframes fadeUp{from{transform:translateY(14px);opacity:0}to{transform:none;opacity:1}}
+@keyframes inL{from{transform:translateX(-120%)}to{transform:none}}
+@keyframes inR{from{transform:translateX(120%)}to{transform:none}}
+@keyframes fill{to{width:var(--w)}}
+@keyframes reveal{0%{opacity:0;filter:brightness(0)}40%{opacity:1;filter:brightness(0) drop-shadow(0 0 6px #fff)}70%{filter:brightness(3)}100%{opacity:1;filter:none}}
+@keyframes burst{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+@keyframes flip{from{transform:rotateY(180deg) scale(.4);opacity:0}to{transform:none;opacity:1}}
+@keyframes shine{to{transform:translateX(120%)}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;animation-iteration-count:1!important}}
+</style>
+
+<div id="app">
+  <!-- pantalla de carga: el juego espera a tener todas sus imágenes antes de mostrar la portada -->
+  <div id="sLoad" role="status" aria-live="polite">
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <div class="ldName">Kabbaret - La Audición</div>
+    <div class="ldBar" aria-hidden="true"><i id="ldFill"></i></div>
+    <div class="ldPct" id="ldPct">0 %</div>
+    <div class="ldMsg" id="ldMsg"></div>
+  </div>
+  <button id="mute" type="button" aria-label="Opciones" aria-haspopup="dialog"><img src="btn_menu.png" alt=""></button>
+  <div id="sMenu" hidden role="dialog" aria-modal="true" aria-label="Opciones">
+    <div class="menuPanel">
+      <h2>OPCIONES</h2>
+      <button class="pixbtn" id="bSound" type="button" aria-label="Sonido activado"><img src="btn_sonido_activado.png" alt=""></button>
+      <button class="pixbtn" id="bResume" type="button" aria-label="Volver al juego"><img src="btn_volver_juego.png" alt=""></button>
+      <button class="pixbtn" id="bMainMenu" type="button" aria-label="Menú principal"><img src="btn_menu_principal.png" alt=""></button>
+      <p class="menuNote" id="menuNote">Si vuelves al menú principal, perderás el avance del reto que estás jugando. Los integrantes que ya rescataste se conservan.</p>
+    </div>
+  </div>
+<div id="sRotate" role="alert" aria-live="assertive"><div class="rotPhone" aria-hidden="true"></div><h2>GIRA TU TELÉFONO</h2><p>Kabbaret se juega en vertical.</p></div>
+  <div id="wrap"><canvas id="cv" width="240" height="420" aria-label="Juego Kabbaret"></canvas></div>
+
+  <div id="dlg" hidden role="button" tabindex="0" aria-live="polite">
+    <img id="dlgImg" alt="">
+    <div class="body"><span id="dlgName"></span><p id="dlgText"></p></div>
+    <span class="next">▼</span>
+  </div>
+  <div id="cameo" hidden><div class="card"><img alt=""><div><b></b><span></span></div></div></div>
+  <div id="devPanel" hidden>
+    <div class="devHead">IR A… <button id="devClose" type="button" aria-label="Cerrar">✕</button></div>
+    <div id="devList"></div>
+  </div>
+<section class="screen" id="sTitle" aria-label="Portada">
+    <div class="logoWrap">
+      <img class="logo" src="logo.jpg" alt="Logo de Kabbaret">
+      <h1 class="tTitle" aria-label="La Audición">
+        <img class="tAud" src="titulo_audicion.png" alt="">
+      </h1>
+    </div>
+    <div id="pressStart" role="button" tabindex="0">PRESS START</div>
+    <div id="titleMenu" hidden>
+      <div class="tmGroup" id="tmMain">
+        <button class="pixbtn" id="bStory" type="button" aria-label="Modo historia"><img src="btn_modo_historia.png" alt=""></button>
+        <button class="pixbtn" id="bPase" type="button" aria-label="Back Stage"><img src="btn_backstage.png" alt=""></button>
+      </div>
+      <div class="tmGroup" id="tmStory" hidden>
+        <button class="pixbtn" id="bCont" type="button" aria-label="Continuar"><img src="btn_continuar.png" alt=""></button>
+        <button class="pixbtn" id="bNew" type="button" aria-label="Nueva partida"><img src="btn_nueva_partida.png" alt=""></button>
+        <button class="pixbtn" id="bStoryBack" type="button" aria-label="Regresar"><img src="btn_regresar.png" alt=""></button>
+      </div>
+    </div>
+    <p class="copy"><span style="white-space:nowrap">© 2026 KABBARET · QUADRANT&nbsp;STUDIO</span><br><span style="white-space:nowrap">SUBE EL VOLUMEN, KEEP ON ROCKIN'</span><br><span id="verTag" style="white-space:nowrap;opacity:.55">v1.2 · 23-11-2026</span></p>
+  </section>
+
+
+  <section class="screen" id="sPase" hidden aria-label="Pase de camerino">
+    <div class="paseStage" aria-hidden="true"><i></i><i></i></div>
+    <div class="paseSwing">
+      <div class="lanyard" aria-hidden="true"><span>KABBARET · KABBARET · KABBARET · KABBARET · KABBARET · </span></div>
+      <span class="paseClip" aria-hidden="true"></span>
+      <div class="paseFoil">
+        <div class="pase">
+          <div class="paseSparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="paseHead">
+            <span class="paseAll">FULL PASS</span>
+            <div class="paseHeadTxt"><h1 class="paseTag">BACKSTAGE</h1><span class="paseSub">KABBARET · LA AUDICIÓN</span></div>
+          </div>
+          <div class="paseBody">
+            <p class="paseTxt"><i>Kabbaret: La Audición</i> se creó para vivirse completo: cinco integrantes, una sola noche y una audición que no se puede perder. Te invitamos a jugarlo en el <b>Modo historia</b>.</p>
+            <p class="paseTxt">También puedes jugar el nivel de tu integrante favorito.</p>
+            <div class="paseGrid">
+              <button class="paseM" type="button" data-k="checho" aria-label="Checho"><span class="ppWrap"><img class="pp" src="p_checho.jpg" alt=""></span><img class="pn" src="btn_pase_checho.png" alt=""></button>
+              <button class="paseM" type="button" data-k="maito" aria-label="Maito"><span class="ppWrap"><img class="pp" src="p_maito.jpg" alt=""></span><img class="pn" src="btn_pase_maito.png" alt=""></button>
+              <button class="paseM" type="button" data-k="dave" aria-label="Dave"><span class="ppWrap"><img class="pp" src="p_dave.jpg" alt=""></span><img class="pn" src="btn_pase_dave.png" alt=""></button>
+              <button class="paseM" type="button" data-k="mao" aria-label="Mao"><span class="ppWrap"><img class="pp" src="p_mao.jpg" alt=""></span><img class="pn" src="btn_pase_mao.png" alt=""></button>
+              <button class="paseM" type="button" data-k="cami" aria-label="Cami"><span class="ppWrap"><img class="pp" src="p_cami.jpg" alt=""></span><img class="pn" src="btn_pase_cami.png" alt=""></button>
+            </div>
+            <p class="paseNote">Al terminar su nivel volverás a la portada.<br>El gran final solo se vive en el Modo historia.</p>
+            <div class="paseCode" aria-hidden="true"><span class="bars"></span><span>KAB-2009 · STAFF ONLY</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="paseBtns">
+      <button class="pixbtn" id="bPaseBack" type="button" aria-label="Regresar a la portada"><img src="btn_regresar.png" alt=""></button>
+    </div>
+  </section>
+
+  <section class="screen" id="sConfirm" hidden>
+    <h2>¿EMPEZAR DE CERO?</h2>
+    <p>Se borrará el progreso: los integrantes rescatados volverán a ser siluetas.</p>
+    <div class="row">
+      <button class="pixbtn" id="bYes" type="button" aria-label="Sí, borrar"><img src="btn_si_borrar.png" alt=""></button>
+      <button class="pixbtn" id="bNo" type="button" aria-label="No, volver"><img src="btn_no_volver.png" alt=""></button>
+    </div>
+  </section>
+
+  <section class="screen" id="sAviso" hidden aria-label="Advertencia">
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <div class="avTxt">
+    <h2>ADVERTENCIA</h2>
+    <p>Todo lo que vas a vivir a continuación está basado en hechos reales.</p>
+    <p class="small">Los cables enredados, las gorras perdidas, los chistes malos, las llamadas de trabajo a deshoras y los micrófonos desarmados nos pasan de verdad. Casi todos los días.</p>
+    <p class="small">Los nombres de las bandas famosas fueron cambiados para proteger a los inocentes (y a nuestros abogados, que no tenemos).</p>
+    <p>¿Algo te parece demasiado loco para ser cierto? Pregúntanos. Te contamos la historia completa.</p>
+    </div>
+    <div class="ctas">
+      <button class="pixbtn apoyo" type="button" aria-label="¡Apóyanos!" onclick="openApoyo()"><img src="btn_apoyanos.png" alt=""></button>
+    </div>
+    <button class="pixbtn" id="bAviso" type="button" aria-label="Continuar"><img src="btn_continuar.png" alt=""></button>
+  </section>
+  <section class="screen" id="sApoyo" hidden aria-label="Apóyanos">
+    <h1>¡APÓYANOS!</h1>
+    <p class="apoyoTxt">Puedes apoyar a Kabbaret como Sponsor en nuestra Vaki.<br><br>Compartir el juego con tus amigos también nos ayuda muchísimo.</p>
+    <a class="pixbtn" id="bSponsors" aria-label="Sponsors Kabbaret (abre la Vaki de la banda)" href="https://vaki.co/vaki/kabbaret_band" target="_blank" rel="noopener noreferrer"><img src="btn_sponsors.png" alt=""></a>
+    <!-- cuando el juego tenga su propia dirección, cambiar el enlace en el texto de WhatsApp -->
+    <a class="pixbtn" id="bWhats" aria-label="Compartir en WhatsApp" href="https://wa.me/?text=%C2%A1Juega%20Kabbaret%21%20%F0%9F%8E%B8%20https%3A%2F%2Fkabbaret.com" target="_blank" rel="noopener noreferrer"><img src="btn_whatsapp.png" alt=""></a>
+    <div class="ctaRow soc4">
+      <a class="cta icon ig" href="https://www.instagram.com/kabbaretoficial/" target="_blank" rel="noopener" aria-label="Instagram"><img src="icon_instagram.png" alt=""><span>Instagram</span></a>
+      <a class="cta icon yt" href="https://www.youtube.com/@kabbaretband" target="_blank" rel="noopener" aria-label="YouTube"><img src="icon_youtube.png" alt=""><span>YouTube</span></a>
+      <a class="cta icon tt" href="https://www.tiktok.com/@kabbaretoficial" target="_blank" rel="noopener" aria-label="TikTok"><img src="icon_tiktok.png" alt=""><span>TikTok</span></a>
+      <a class="cta icon sp soon" aria-disabled="true" aria-label="Spotify: próximamente"><img src="icon_spotify.png" alt=""><span>Próximamente</span></a>
+    </div>
+    <button class="pixbtn" id="bApoyoBack" type="button" aria-label="Regresar" onclick="closeApoyo()"><img src="btn_regresar.png" alt=""></button>
+  </section>
+  <section class="screen" id="sChat" hidden>
+    <span class="clock">HOY · 3:21 P.M.</span>
+    <div class="phone">
+      <header><img src="logo.jpg" alt=""><div><b>KABBARET 🤘</b><small>5 integrantes · en línea</small></div></header>
+      <div class="msgs" id="msgs"></div>
+      <div class="typing" id="typing">escribiendo…</div>
+      <button class="chatMore" id="chatMore" type="button" aria-label="Ver mensajes nuevos" hidden><img src="btn_bajar.png" alt=""><span class="n" id="chatN"></span></button>
+    </div>
+    <button class="pixbtn" id="bChat" type="button" aria-label="Continuar" hidden><img src="btn_continuar.png" alt=""></button>
+  </section>
+
+  <section class="screen" id="sMap" hidden>
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <span class="clock" id="mapClock"></span>
+    <div class="map" id="map">
+      <img src="map_base.jpg" alt="Siluetas de los cinco integrantes de Kabbaret en tarima">
+      <img class="rev" data-k="checho" src="rev_checho.png" alt="">
+      <img class="rev" data-k="cami" src="rev_cami.png" alt="">
+      <img class="rev" data-k="maito" src="rev_maito.png" alt="">
+      <img class="rev" data-k="mao" src="rev_mao.png" alt="">
+      <img class="rev" data-k="dave" src="rev_dave.png" alt="">
+      <div class="burst" id="burst"></div>
+      <div class="banner"><b id="mapCount">0/5 LISTOS</b><span id="mapSub"></span></div>
+    </div>
+    <button class="pixbtn" id="bMap" type="button"><img id="bMapImg" src="btn_nivel_checho.png" alt=""></button>
+    <div class="ctas">
+      <button class="pixbtn apoyo" type="button" aria-label="¡Apóyanos!" onclick="openApoyo()"><img src="btn_apoyanos.png" alt=""></button>
+    </div>
+    <p class="small">Síguenos para enterarte de los próximos toques.</p>
+  </section>
+
+  <section class="screen" id="sIntro" hidden>
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <div class="in">
+    <div class="ch">CHAPTER</div>
+    <div class="num" id="iNum" aria-hidden="true"></div>
+    <div class="mid"><div class="name" id="iName"></div><div class="rule"></div><div class="ttl" id="iTtl"></div></div>
+    <div class="hx"><b>HECHO REAL</b><p id="iHecho"></p></div>
+    </div>
+    <button class="pixbtn" id="bIntro" type="button" aria-label="¡A tocar!"><img src="btn_a_tocar.png" alt=""></button>
+  </section>
+
+  <section class="screen" id="sVS" hidden>
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <div class="vs">
+      <figure class="pl"><img id="vsP" alt=""></figure>
+      <div class="x">VS</div>
+      <figure class="bs"><img id="vsB" alt=""></figure>
+    </div>
+    <p id="vsDesc"></p>
+    <div hidden><span id="vsPName"></span><span id="vsBName"></span><span id="vsBCls"></span><div id="vsMoves"></div></div>
+    <button class="pixbtn" id="bVS" type="button" aria-label="¡A pelear!"><img src="btn_a_pelear.png" alt=""></button>
+  </section>
+
+  <section class="screen" id="sOver" hidden>
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <h2>¡SIN VIDAS!</h2>
+    <div class="quote-card"><img id="oImg" src="p_maito.jpg" alt=""><p id="oTxt"></p></div>
+    <p class="small" id="oHint"></p>
+    <button class="pixbtn" id="bRetry" type="button" aria-label="Reintentar"><img src="btn_reintentar.png" alt=""></button>
+    <button class="pixbtn" id="bOverHome" type="button" aria-label="Ir a la portada" hidden><img src="btn_ir_portada.png" alt=""></button>
+  </section>
+
+  <section class="screen" id="sFicha" hidden>
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <span class="unlock">★ PERSONAJE DESBLOQUEADO ★</span>
+    <div class="ficha"><img id="fImg" src="ficha_checho.jpg" alt=""></div>
+    <div class="row">
+      <button class="pixbtn" id="bFicha" type="button" aria-label="Continuar"><img src="btn_continuar.png" alt=""></button>
+    </div>
+    <div class="ctas">
+      <button class="pixbtn apoyo" type="button" aria-label="¡Apóyanos!" onclick="openApoyo()"><img src="btn_apoyanos.png" alt=""></button>
+    </div>
+    <p class="small">Síguenos para enterarte de los próximos toques.</p>
+  </section>
+
+  <section class="screen" id="sEnd" hidden>
+    <i class="spk a"></i><i class="spk b"></i><i class="spk c"></i>
+    <div class="endHead">
+      <h1 class="endThanks">Gracias por jugar</h1>
+      <p class="endBand">Checho, Maito, Dave, Mao y Cami.</p>
+    </div>
+    <div class="ctas">
+      <button class="pixbtn apoyo" type="button" aria-label="¡Apóyanos!" onclick="openApoyo()"><img src="btn_apoyanos.png" alt=""></button>
+      <button class="pixbtn" id="bEndMap" type="button" aria-label="Menú principal"><img src="btn_menu_principal.png" alt=""></button>
+    </div>
+    <p class="endCredit">Desarrollado por Quadrant Studio<br>© 2026 Kabbaret y Quadrant Studio.<br>Todos los derechos reservados.</p>
+  </section>
+</div>
+
+<script>
+// registro de todas las imágenes que crean los scripts, para la barra de carga
+window.__IMGS = []; (function(){ const I = window.Image; function R(w, h){ const i = new I(w, h); window.__IMGS.push(i); return i; } R.prototype = I.prototype; window.Image = R; })();
+</script>
+<script src="core.js"></script>
+<script src="chars.js"></script>
+<script src="lv1.js"></script>
+<script src="lv2.js"></script>
+<script src="lv3.js"></script>
+<script src="lv4.js"></script>
+<script src="lv5.js"></script>
+<script src="lv6.js"></script>
+<script src="flow.js"></script>
+<script>
+(function(){
+  if (typeof setBlackBg === 'function') setBlackBg(true);   // la carga va en negro hasta los bordes
+  const box = document.getElementById('sLoad'), fill = document.getElementById('ldFill'), pct = document.getElementById('ldPct'), msg = document.getElementById('ldMsg');
+  const MSGS = ['Afinando guitarras…', 'Conectando los pedales…', 'Buscando las baquetas de Mao…', 'Calentando la voz…', 'Comprando el pollito…', 'Prendiendo el Kabbaret Móvil…', 'Probando sonido: uno, dos…'];
+  // frases en orden aleatorio, sin repetir la anterior; cada una se queda 2 s para que alcance a leerse
+  let mi = Math.floor(Math.random() * MSGS.length); msg.textContent = MSGS[mi];
+  const nextMsg = () => { let j; do { j = Math.floor(Math.random() * MSGS.length); } while (j === mi); mi = j; msg.textContent = MSGS[mi]; };
+  const msgT = setInterval(nextMsg, 2000);
+  const all = window.__IMGS.concat(Array.from(document.images)).filter(i => i.src);
+  const total = all.length, MIN = 2400, t0 = performance.now(); let done = 0, finished = false;
+  // la barra nunca va más rápido que MIN: aunque todo cargue al instante, se llena en ~2,4 s
+  function update(){ const real = total ? done / total : 1, byTime = Math.min(1, (performance.now() - t0) / MIN), p = Math.round(100 * Math.min(real, byTime));
+    fill.style.width = p + '%'; pct.textContent = p + ' %'; if (p >= 100) finish(); }
+  const tick = setInterval(update, 100);
+  function finish(){ if (finished) return; finished = true; clearInterval(msgT); clearInterval(tick); fill.style.width = '100%'; pct.textContent = '100 %';
+    setTimeout(() => { box.classList.add('out'); setTimeout(() => { box.remove(); if (typeof setBlackBg === 'function') setBlackBg(false); }, 600); }, 350); }
+  all.forEach(i => { if (i.complete) done++; else { const f = () => { done++; update(); }; i.addEventListener('load', f, { once:true }); i.addEventListener('error', f, { once:true }); } });
+  update(); setTimeout(finish, 20000);   // nunca se queda pegada: a los 20 s entra igual
+})();
+</script>
+<script>
+// ¡Apóyanos!: abre una capa encima de la pantalla actual; REGRESAR la cierra y vuelve a donde estabas
+function openApoyo(){ document.getElementById('sApoyo').hidden = false; }
+function closeApoyo(){ document.getElementById('sApoyo').hidden = true; }
+</script>

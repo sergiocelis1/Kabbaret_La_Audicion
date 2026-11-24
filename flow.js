@@ -220,7 +220,7 @@ function goTitle(){
 }
 /* ---------- compartir: primero el menú nativo del celular (sin el aviso de «Abrir enlace» con la dirección larga);
    si el celular no lo permite, sigue el enlace corto de WhatsApp ---------- */
-const SHARE = { title:'Kabbaret: La Audición', text:'¡Juega Kabbaret: La Audición! Rescata a la banda en una noche de locos por Bogotá 🎸', url:'https://claude.ai/artifact/8EJtB6FwVSwaPfgsXiJdax' };
+const SHARE = { title:'Kabbaret: La Audición', text:'¡Juega Kabbaret: La Audición! Rescata a la banda en una noche de locos por Bogotá 🎸', url:'https://kabbaret.com' };
 $('bWhats').addEventListener('click', e => {
   if (!navigator.share) return;   // sin menú nativo: el enlace normal hace su trabajo
   e.preventDefault(); const a = e.currentTarget;
