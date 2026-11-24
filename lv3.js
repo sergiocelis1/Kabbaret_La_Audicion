@@ -546,7 +546,7 @@ const L3 = {
         { who:'dave', text:'Tengo un ensayo. Bueno… una audición. Bueno… mi vida.' },
         { who:'deadline', text:'¿Vida? Qué gracioso. ¡No te vas hasta que termines los reportes!', fx: idle([['dave',176,{ y:194, flip:true }],['deadline',62,{ anim:'explica' }]]) },
         { who:'checho', text:'¿Qué pasa, Dave? ¡Vámonos!' },
-        { who:'narr', text:'JEFE · Mr. Deadline. Arrastra el dedo por el piso para mover a Dave y esquivar los correos y las reuniones (la sombra en el piso avisa dónde va a caer cada correo). Atrapa las notas de bajo para cargar el BASS SOLO y tócalo para tocárselo: tres solos lo desconectan. Si te golpean 3 veces, pierdes una vida.' } ] }
+        { who:'narr', text:'JEFE · Mr. Deadline. Arrastra el dedo por el piso para mover a Dave y esquivar los correos y las reuniones (la sombra en el piso avisa dónde va a caer cada correo). Atrapa las notas de bajo para cargar el BASS SOLO y, cuando esté listo, presiona el botón para lanzárselo: tres solos lo desconectan. Si te golpean 3 veces, pierdes una vida.' } ] }
   ],
   outro:[
     { who:'deadline', text:'Esto… lo hablamos el lunes.', fx(){ davePeto = false; setStage(scenePostIts()); SFX.hey(); vibrate(200); } },

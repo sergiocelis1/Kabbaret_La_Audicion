@@ -347,11 +347,11 @@ function sceneSustain(){
           else if (S.t > n.t + n.d + REL){ n.st = 'bad'; S.cur = null; err('¡Una nota de más!'); }
         }
       }
-      if (S.t > END && !S.notes.some(n => n.st === 'hold')){ S.done = true; voiceOff(); win('¡BRAVO, CAMI!'); setTimeout(stepDone, 1300); }
+      if (S.t > END && !S.notes.some(n => n.st === 'hold')){ S.done = true; voiceOff(); win('¡BRAVO, CAMI!'); setTimeout(stepDone, 2800); }   // se alcanza a ver a Cami celebrando
     },
     draw(){
       const singing = S.holding && S.cur, cam = TW.CAMC;
-      const camiAnim = T - S.errT < .9 ? 'falla' : singing ? ((Math.floor((S.cur.t - START) / (6*E)) % 2 === 0) === (S.t - S.cur.t < S.cur.d / 2 || S.cur.d < 1.2) ? 'canta' : 'ojos') : 'idle';   // alterna entre cantar y cerrar los ojos: cambia por compás y en la mitad de las notas largas
+      const camiAnim = S.done ? 'celebra' : T - S.errT < .9 ? 'falla' : singing ? ((Math.floor((S.cur.t - START) / (6*E)) % 2 === 0) === (S.t - S.cur.t < S.cur.d / 2 || S.cur.d < 1.2) ? 'canta' : 'ojos') : 'idle';   // alterna entre cantar y cerrar los ojos: cambia por compás y en la mitad de las notas largas
       tDraw(cam, [['director', TW.dirC, { anim: S.done ? 'idle' : 'dirige', y:TW.dirY }], ['camig', TW.camiC, { anim: camiAnim }]], TW.camiC, () => {
         if (T - S.errT < .35){ ctx.globalAlpha = (.35 - (T - S.errT)) * 2; r(0, 30, W, 206, '#ff4d6d'); ctx.globalAlpha = 1; }
         if (singing){ for (let i=0;i<3;i++){ const ph = (T*.8 + i/3) % 1; ctx.globalAlpha = 1 - ph; vtxt('♪', TW.camiC - cam + 14 + Math.sin(ph*6 + i)*6, 150 - ph*40, C.gold); } ctx.globalAlpha = 1; }

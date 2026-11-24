@@ -62,18 +62,18 @@ function drawTunerPedal(S, names){
 }
 
 function sceneFloyd(){
-  const S = { a:0, v:0, f:0, ft:0, prog:0, hold:{}, done:false, zone:.38, inv:0, voice:null }; if (window.DEV_HOOK) window.__floyd = S;  // solo para pruebas
+  const S = { a:0, v:0, f:0, ft:0, prog:0, hold:{}, done:false, zone:.3, inv:0, voice:null }; if (window.DEV_HOOK) window.__floyd = S;  // solo para pruebas
   const input = () => { let i = 0; for (const k in S.hold) i += S.hold[k]; return Math.max(-1, Math.min(1, i)); };
   return { label:'RETO 2/3', start(){ S.voice = holdVoice('sawtooth', true, .05); },
     update(dt){
       if (S.done) return;
-      S.ft -= dt; if (S.ft <= 0){ S.ft = .35 + Math.random()*.4; S.f = (Math.random()*2-1)*(1+S.prog*.4); }
+      S.ft -= dt; if (S.ft <= 0){ S.ft = .35 + Math.random()*.4; S.f = (Math.random()*2-1)*(1+S.prog*.6); }
       // el puente es inestable: sin tocar, la palanca se va sola hacia un lado (no se gana dejando el juego quieto)
       if (!S.lean || Math.random() < dt*.25) S.lean = Math.random() < .5 ? -1 : 1;
-      S.v += (S.f*.85 + S.lean*.6 + S.a*1.4 - input()*2.6)*dt;   // (más fácil: empujes y deriva más suaves) S.v *= Math.pow(.25, dt); S.a += S.v*dt;
+      S.v += (S.f*.89 + S.lean*.68 + S.a*1.36 - input()*2.6)*dt; S.v *= Math.pow(.25, dt); S.a += S.v*dt;   // empujes y deriva un 15 % más suaves que la versión original
       if (S.inv > 0) S.inv -= dt;
       if (input() !== 0) S.touch = T;
-      if (Math.abs(S.a) < S.zone && T - (S.touch ?? -9) < 2.5){ S.prog += dt/6.5; /* solo avanza si el jugador está calibrando */ if (Math.random() < dt*1.2) fans = Math.min(1, fans + .01); }
+      if (Math.abs(S.a) < S.zone && T - (S.touch ?? -9) < 2.5){ S.prog += dt/8; /* solo avanza si el jugador está calibrando */ if (Math.random() < dt*1.2) fans = Math.min(1, fans + .01); }
       if (Math.abs(S.a) >= 1 && S.inv <= 0){ loseLife(); addBubble('¡PLIIING!', 120, 126, C.neon, 10); S.a = 0; S.v = 0; S.inv = 1; S.hold = {}; }
       S.a = Math.max(-1, Math.min(1, S.a)); S.voice && S.voice.set(196*Math.pow(2, S.a*.9), true);
       if (S.prog >= 1){ S.done = true; this.stop(); win('¡CALIBRADO!'); setTimeout(stepDone, 900); }

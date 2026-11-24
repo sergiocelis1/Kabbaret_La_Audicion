@@ -274,8 +274,8 @@ function sceneEnredo(){
     const MX0 = 60, MY0 = 228, MX1 = 200, MY1 = 190;
     // Maito: espera mientras El Enredo cae; solo cuando está tendido corre a la esquina superior derecha y celebra
     if (k < 2.2) CAST.maito(MX0, { anim: k < 1.2 ? 'beisbol' : 'idle_beisbol' });
-    else if (k < 3.4){ const u = ease((k-2.2)/1.2); drawMaitoSprite(MX0 + (MX1-MX0)*u, MY0 + (MY1-MY0)*u, { anim:'corre' }); }
-    else drawMaitoSprite(MX1, MY1, { anim:'celebra' });
+    else if (k < 3.4){ const u = ease((k-2.2)/1.2); drawMaitoSprite(MX0 + (MX1-MX0)*u, MY0 + (MY1-MY0)*u, { anim:'corre_jefe' }); }   // corre a la esquina con la camiseta de béisbol
+    else drawMaitoSprite(MX1, MY1, { anim:'celebra_jefe' });   // celebración con el guante de béisbol
     // El Enredo: se eleva por el golpe, cae de espaldas (sprite cae2) y queda tendido rebotando
     { const fx = S.kx + (128 - S.kx)*ease(Math.min(1, k/1.2)); let y = 228, f;
       if (k < .6){ const u = k/.6; y -= Math.sin(u*Math.PI/2)*36; f = u*4; }
@@ -314,9 +314,11 @@ function sceneEnredo(){
         S.mx = 92; S.countT -= dt;
         if (S.countT <= 0){ S.count++; S.countT = rd.count; SFX.slap(); addBubble(String(S.count), 120, 140, C.ink, 24);
           if (S.count >= 3){ loseLife(['p_maito.jpg','MAITO','¡De pie, hijo de pe#@%, porque Mickey te ama!']); S.phase = 'recover'; S.t = 1.8; } }
-        if (S.phase === 'pin' && S.esc >= S.need){ SFX.riffStab(); addBubble('¡SE ZAFÓ!', 120, 120, C.ok, 10); burst(100, 200, 14); startAttack(); }
+        if (S.phase === 'pin' && S.esc >= S.need){ SFX.riffStab(); addBubble('¡SE ZAFÓ!', 120, 120, C.ok, 10); burst(100, 200, 14);
+          if (S.finalPin){ S.phase = 'ko'; S.koT = 0; S.kx = 92; S.mx = 92; S.plugs = []; S.item = null; SFX.thud(); shake = RM ? 0 : .4; setMusic('calm'); }   // al zafarse por 3.ª vez: K.O., sin panel y música en calma
+          else startAttack(); }
       }
-      else if (S.phase === 'recover'){ S.t -= dt; S.mx += (180 - S.mx)*Math.min(1, dt*4); if (S.t <= 0 && lives > 0) startAttack(); }
+      else if (S.phase === 'recover'){ S.t -= dt; S.mx += (180 - S.mx)*Math.min(1, dt*4); if (S.t <= 0 && lives > 0){ if (S.finalPin) startPin(); else startAttack(); } }   // si lo cuentan en la última llave, El Enredo vuelve a intentarlo
       else if (S.phase === 'attack'){
         // El Enredo se mueve de lado a lado y sube/baja un poco: hay que perseguir los enchufes
         S.mx += (180 + Math.sin(T*1.5)*rd.move - S.mx) * Math.min(1, dt*5); S.dy = Math.sin(T*2.3)*rd.bob;
@@ -325,7 +327,7 @@ function sceneEnredo(){
         S.plugs.forEach(p => p.life -= dt); S.plugs = S.plugs.filter(p => p.life > 0);
         if (!S.item && Math.random() < dt*rd.item){ const k = ['cafe','taco'][Math.random()*2|0]; if (!(k === 'taco' && lives >= 3)) { let x, y, n = 0; do { x = 24 + Math.random()*192; y = 72 + Math.random()*120; n++; } while (n < 10 && Math.abs(x - S.mx) < 34 && y > 110); S.item = { k, v: 1 + (Math.random()*3|0), x, y, life: 2.4 + Math.random()*1.4 }; } }   // aparece en cualquier punto del escenario, sin taparse con El Enredo
         if (S.hits >= rd.hits){ S.prevHits = rd.hits; S.hp--; S.flinch = .8; SFX.thud(); burst(S.mx, 170, 22); shake = RM ? 0 : .3; S.plugs = [];
-          if (S.hp <= 0){ S.phase = 'ko'; S.koT = 0; S.kx = S.mx; S.plugs = []; S.item = null; SFX.thud(); shake = RM ? 0 : .4; }
+          if (S.hp <= 0){ addBubble('¡RONDA SUPERADA!', 120, 100, C.ok, 9); S.hits = 0; S.item = null; S.finalPin = true; startPin(); }   // última llave: hay que zafarse una 3.ª vez para el K.O.
           else { addBubble('¡RONDA SUPERADA!', 120, 100, C.ok, 9); S.hits = 0; S.item = null; startPin(); } }   // sin aviso: El Enredo salta por sorpresa e intenta la sumisión
         else if (S.spawned >= rd.spawns && S.plugs.length === 0){ addBubble('¡CONTRAATACA!', 120, 110, C.neon, 8); startPin(); }
       }
@@ -351,7 +353,7 @@ function sceneEnredo(){
       r(0,30,W,20,'#0b0718cc'); vtxt('El Enredo', 74, 35, C.neon, 'right', '#000');
       for (let i=0;i<3;i++) r(80 + i*28, 35, 24, 8, i < S.hp ? C.neon : '#2a2240');
       if (S.cafe) vtxt('Café', 234, 35, C.gold, 'right', '#000');
-      drawEnredoPanel(S, RD());
+      if (S.phase !== 'ko') drawEnredoPanel(S, RD());   // en el K.O. desaparece el panel del minijuego
     },
     tap(x, y){
       if (S.done) return;
@@ -379,8 +381,8 @@ function sceneMaitoOutro(o={}){
     const t = T - t0;
     drawStage({ party:true });
     let mGone = false;
-    if (o.maitoRunAfter != null && t > o.maitoRunAfter){ const x = MX + (t - o.maitoRunAfter)*150; if (x < 290) drawMaitoSprite(x, MY, { anim:'corre' }); else mGone = true; }
-    else drawMaitoSprite(MX, MY, { anim: o.maito || 'celebra' });
+    if (o.maitoRunAfter != null && t > o.maitoRunAfter){ const x = MX + (t - o.maitoRunAfter)*150; if (x < 290) drawMaitoSprite(x, MY, { anim:'persigue' }); else mGone = true; }   // sale detrás de Checho sin guitarra (camiseta de béisbol)
+    else drawMaitoSprite(MX, MY, { anim: o.maito || 'celebra_jefe' });
     drawEnredo(128, 228, { anim:'cae', t: 8.99 / ENR_FPS.cae, once:true });
     if (!o.chechoGone){ if (o.chechoRun){ const x = CX + t*140; if (x < 300) drawChechoSprite(x, CY, { anim:'corre_mexa' }); } else drawChechoSprite(CX, CY, { anim: o.checho || 'anima', flip: o.checho === 'casa' }); }
     drawCrowd(); drawHUD('¡MAI-TO!');
@@ -421,11 +423,11 @@ const L2 = {
         { who:'narr', text:'JEFE · El Enredo. Toca los conectores que brillan para lanzarle pelotas de béisbol. Si se te tira encima y te inmoviliza, toca rápido para zafarte antes de la cuenta de 3. Son 3 rondas, cada una más rápida.' } ] }
   ],
   outro:[
-    { who:'presentador', text:'¡Gana por desconexión técnicaaa!', fx(){ setStage(sceneMaitoOutro({ checho:'anima', maito:'celebra' })); SFX.hey(); } },
+    { who:'presentador', text:'¡Gana por desconexión técnicaaa!', fx(){ setStage(sceneMaitoOutro({ checho:'anima', maito:'celebra_jefe' })); SFX.hey(); } },
     { who:'enredo', text:'Me ganaste, rockero… pero los cables siempre vuelven. Siempre.' },
-    { who:'maito', text:'Eso ya lo sé, compa. Vivo entre ellos.', fx(){ setStage(sceneMaitoOutro({ checho:'casa', maito:'rie' })); } },
-    { who:'checho', text:'Vamos por Dave. Debe seguir en esa call.', fx(){ setStage(sceneMaitoOutro({ checho:'corre_mexa', chechoRun:true, maito:'celebra' })); } },
-    { who:'maito', text:'¡Pepino, espérame!', fx(){ setStage(sceneMaitoOutro({ chechoGone:true, maito:'celebra', maitoRunAfter:1, fadeOut:true })); } }
+    { who:'maito', text:'Eso ya lo sé, compa. Vivo entre ellos.', fx(){ setStage(sceneMaitoOutro({ checho:'casa', maito:'rie_jefe' })); } },
+    { who:'checho', text:'Vamos por Dave. Debe seguir en esa call.', fx(){ setStage(sceneMaitoOutro({ checho:'corre_mexa', chechoRun:true, maito:'celebra_jefe' })); } },
+    { who:'maito', text:'¡Pepino, espérame!', fx(){ setStage(sceneMaitoOutro({ chechoGone:true, maito:'celebra_jefe', maitoRunAfter:1, fadeOut:true })); } }
   ],
   mapSub:'¡MAITO DESENREDADO! FALTAN 3 · SIGUIENTE: EL COWORK'
 };

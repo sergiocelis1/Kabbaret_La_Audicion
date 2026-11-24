@@ -407,6 +407,7 @@ function drawStage(o={}){
 }
 
 // Rock Express pintado: imagen al 25 % centrada, el borde de la tarima cae justo en STAGE_Y; sin textos encima (la imagen ya los trae)
+const FW_IMG = ['azul','naranja','morado','verde','rosa'].map(k => Object.assign(new Image(), { src:'fx_fuego_' + k + '.png' })), FW = { list:[], next:0 };
 function drawStageImg(v, o){
   const im = BG_IMG[v]; ctx.imageSmoothingEnabled = false;
   r(0, 0, W, H, '#07040f'); ctx.drawImage(im, Math.round((BG_X[v] ?? (W - im.naturalWidth)/2) - (o.cam ?? (v === 'cowork' && COWORK_DOOR ? 468 : v === 'teatro' ? TEATRO_CAM : 0))), BG_Y[v] || 0);   // o.cam: cámara que se desplaza por fondos panorámicos
@@ -415,7 +416,23 @@ function drawStageImg(v, o){
     const g = ctx.createLinearGradient(0, 56, 0, 80); g.addColorStop(0, 'rgba(9,7,32,1)'); g.addColorStop(1, 'rgba(9,7,32,0)'); ctx.fillStyle = g; ctx.fillRect(0, 56, W, 24); }
   r(0, 0, W, STAGE_Y + 2, o.dim ? 'rgba(8,5,24,.55)' : BG_VEIL);
   if (v === 'hogar'){ ctx.globalAlpha = .06 + .02*Math.sin(T*2); ctx.fillStyle = '#ffd98a'; ctx.beginPath(); ctx.moveTo(108, 44); ctx.lineTo(132, 44); ctx.lineTo(170, STAGE_Y); ctx.lineTo(70, STAGE_Y); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1; if (typeof drawPerla === 'function'){ drawPerla(); drawPerlaDash(); } return; } // luz cálida de la lámpara
-  if (v === 'cowork' || v === 'rxfinal' || v === 'arena' || v === 'camerino' || v === 'festival') return;   // la Arena (fondo de Sergio) también trae sus reflectores   // rxfinal ya trae sus reflectores pintados   // el cowork es un lugar de trabajo: sin reflectores ni humo de escenario
+  if (v === 'festival'){   // festival: la misma luna del nivel de Checho en el cielo y, cuando la banda toca, reflectores que barren la tarima como en Rock Express
+    const mx = 198, my = 36, g = ctx.createRadialGradient(mx, my, 4, mx, my, 30); g.addColorStop(0, 'rgba(120,170,255,.5)'); g.addColorStop(.45, 'rgba(60,100,230,.2)'); g.addColorStop(1, 'rgba(20,30,120,0)');
+    ctx.fillStyle = g; ctx.fillRect(mx - 30, my - 30, 60, 60);
+    if (typeof LUNA !== 'undefined' && LUNA.complete && LUNA.naturalWidth){ ctx.imageSmoothingEnabled = false; ctx.drawImage(LUNA, mx - 11, my - 11); }
+    if (o.party){
+      // fuegos artificiales al azar en el cielo, por encima de la carpa (azul, naranja, morado, verde o rosa; 17 cuadros a 12 por segundo)
+      if (T >= (FW.next || 0)){ FW.list.push({ k: Math.random()*5|0, x: 4 + Math.random()*176, y: -6 + Math.random()*22, t0: T }); FW.next = T + .65 + Math.random()*.9; }   // un poco más espaciados
+      FW.list = FW.list.filter(f => (T - f.t0)*12 < 17);
+      FW.list.forEach(f => { const im = FW_IMG[f.k]; if (im.complete && im.naturalWidth){ ctx.imageSmoothingEnabled = false; ctx.drawImage(im, Math.floor((T - f.t0)*12)*56, 0, 56, 56, Math.round(f.x), Math.round(f.y), 56, 56); } });
+      // los haces nacen justo debajo de los 5 reflectores naranjas de la barra del techo (y = 89) y no tocan el arco del techo
+      [[31,C.magenta],[79,C.cyan],[120,C.orange],[160,C.cyan],[208,C.magenta]].forEach(([x,c],i) => {
+        const sw = Math.sin(T*(.9+i*.27)+i*2)*46; ctx.globalAlpha = .2 + .06*Math.sin(T*4+i); ctx.fillStyle = c;
+        ctx.beginPath(); ctx.moveTo(x-3, 89); ctx.lineTo(x+3, 89); ctx.lineTo(x+sw+24, 186); ctx.lineTo(x+sw-24, 186); ctx.closePath(); ctx.fill(); });
+      for (let i=0;i<3;i++){ ctx.globalAlpha = .05 + .04*Math.sin(T*3+i*2); r(0, 92, W, 94, [C.magenta,C.cyan,C.gold][i]); }   // brillo de colores solo sobre la tarima, debajo del techo
+      ctx.globalAlpha = 1; }
+    return; }
+  if (v === 'cowork' || v === 'rxfinal' || v === 'arena' || v === 'camerino') return;   // la Arena (fondo de Sergio) también trae sus reflectores   // rxfinal ya trae sus reflectores pintados   // el cowork es un lugar de trabajo: sin reflectores ni humo de escenario
   if (v === 'teatro'){   // teatro: sin reflectores del techo; solo una luz cálida de seguimiento (o.spot = x en pantalla)
     const spot = o.spot !== undefined ? o.spot : (o.cam == null ? TEATRO_SPOT : null);   // escenas sin cámara propia: la toma del centro, con la luz sobre Cami
     if (spot != null){   // los haces salen del techo del escenario y apuntan a Cami: el central siempre; el izquierdo y el derecho se encienden cuando llega junto al director

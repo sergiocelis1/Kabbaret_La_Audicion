@@ -35,13 +35,18 @@ const FEST_K = 360/672;
 function drawFestCast(cast){ ctx.save(); ctx.translate(-60 + 216*FEST_K, 56 + 38*FEST_K); ctx.scale(FEST_K, FEST_K); cast.forEach(([c, x, o]) => CAST[c](x, o)); ctx.restore(); }
 function sceneFestIdle(){ return { label:'FESTIVAL', update(){}, draw(){ drawStage({}); drawFestCast(FEST); drawCrowd(); drawHUD(this.label); }, tap(){} }; }
 // final del juego: «¿Listos?» 1, 2, 3, 4 en verde, todos pasan a tocar y la pantalla se va a negro; luego los créditos
+// «Amor Avaro» (tema propio de Kabbaret): los primeros 8 s suenan cuando la banda toca en el festival; se descarga y decodifica al llegar al festival
+let FEST_BUF = null, FEST_SRC = null;
+function loadFestSong(){ if (FEST_BUF || !AC) return; fetch('fest_amor_avaro.mp3').then(r => r.arrayBuffer()).then(b => AC.decodeAudioData(b)).then(buf => { FEST_BUF = buf; }).catch(() => {}); }
+function playFestSong(){ if (!AC || !FEST_BUF) return false; FEST_SRC = AC.createBufferSource(); FEST_SRC.buffer = FEST_BUF; const g = AC.createGain(); g.gain.value = .9; FEST_SRC.connect(g); g.connect(master); FEST_SRC.start(); return true; }
+function stopFestSong(){ try { FEST_SRC && FEST_SRC.stop(); } catch(e){} FEST_SRC = null; }
 function sceneFinaleCount(){
   const t0 = T + .2; let n = 0, ended = false;
-  return { label:'FESTIVAL', update(){
+  return { label:'FESTIVAL', stop(){ stopFestSong(); }, update(){
       const k = T - t0;
       while (n < 4 && k >= .9 + n*.5){ DR.hat(now(), n === 0, .12); n++; }
-      if (k >= 2.9 && !ended){ ended = true; setMusic('anthem'); SFX.riffStab(); }
-      if (k >= 5.4 && ended !== 2){ ended = 2; setTimeout(stepDone, 30); }
+      if (k >= 2.9 && !ended){ ended = true; if (playFestSong()) setMusic('silence'); else { setMusic('anthem'); SFX.riffStab(); } }   // suena «Amor Avaro»; si no alcanzó a cargar, el himno del juego
+      if (k >= 28.3 && ended !== 2){ ended = 2; setTimeout(stepDone, 30); }   // tocan 25 s (de 2,9 a 27,9): a partir del segundo 20 se funden imagen y sonido
     }, draw(){
       const k = T - t0;
       drawStage({ party: k >= 2.9 });
@@ -49,7 +54,7 @@ function sceneFinaleCount(){
       drawCrowd(); drawHUD(this.label);
       if (k >= 0 && k < .9){ ctx.globalAlpha = Math.min(1, k*5); vtxtBig('¿Listos?', 120, 40, '#3dff8a', 3, '#000'); ctx.globalAlpha = 1; }
       else if (k >= .9 && k < 2.9){ const i = Math.min(4, Math.floor((k - .9)/.5) + 1), ph = ((k - .9)/.5) % 1; ctx.globalAlpha = Math.max(.3, 1 - ph*.7); vtxtBig(String(i), 120, 40, '#3dff8a', 3, '#000'); ctx.globalAlpha = 1; }
-      if (k >= 3.6){ ctx.globalAlpha = Math.min(1, (k - 3.6)/1.2); r(0, 0, W, H, '#000'); ctx.globalAlpha = 1; }
+      if (k >= 22.9){ ctx.globalAlpha = Math.min(1, (k - 22.9)/5); r(0, 0, W, H, '#000'); ctx.globalAlpha = 1; }
     }, tap(){} };
 }
 
@@ -590,7 +595,7 @@ const L6 = {
     // la última tarima: Mao cuenta y el juego termina
     { id:'festival', clock:'9:00', music:'silence', venue:'festival', scene:() => sceneFinaleCount(),
       before:[
-        { who:'narr', text:'Días después, 9:00 p.m. Festival Rock de los Cerros.', fx(){ VENUE = 'festival'; fadeIn = 1.4; setStage(sceneFestIdle()); setMusic('silence'); setMood(1,3); } },
+        { who:'narr', text:'Días después, 9:00 p.m. Festival Rock de los Cerros.', fx(){ loadFestSong(); VENUE = 'festival'; fadeIn = 1.4; setStage(sceneFestIdle()); setMusic('silence'); setMood(1,3); } },
         { who:'narr', text:'El esfuerzo no siempre paga cuando uno quiere, ni por la puerta que uno espera. Pero una banda que no se rinde siempre encuentra el camino de vuelta a la tarima.' },
         { who:'mao', text:'Bueno, forrillos, vamos a romperla. ¿Listos?' },
         { who:'banda', text:'¡Listos!', fx(){ SFX.hey(); } } ] },

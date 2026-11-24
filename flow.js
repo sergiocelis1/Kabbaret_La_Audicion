@@ -2,7 +2,7 @@
 /* ===================== FLUJO DEL JUEGO ===================== */
 const HECHOS = {
   checho:'En cada concierto en vivo, Checho prueba el micrófono diciendo «Heeeeeeyy». Siempre.',
-  maito:'Cuando toca en vivo, Maito vive enredado con los cables de sus in-ears.',
+  maito:'Además de vivir enredado con los cables de sus in-ears, Maito se sabe de memoria diálogos completos de sus películas favoritas, y los usa a cada rato.',
   dave:'Dave trabaja con Estados Unidos a toda hora. A veces llega al ensayo todavía en una call.',
   mao:'Mao y Maito se ríen todo el tiempo, de chistes que a veces solo ellos entienden.',
   cami:'Cami es Maestra en Música y, además de rockear con Kabbaret, canta con una orquesta filarmónica.',

@@ -116,7 +116,7 @@ function drawMaoCode(x, y, o={}){
 
 // Cami: cantante (elegante o rockera)
 // Cami de gala (nivel 5, vestido vinotinto) y el Director de la Wind Orchestra Region: sprites 136×136 de Sergio
-const CMG_FR = { idle:8, camina:8, canta:9, ojos:9, falla:9 }, CMG_FPS = { idle:5, camina:8, canta:6, ojos:6, falla:9 }, CMG = {};
+const CMG_FR = { idle:8, camina:8, canta:9, ojos:9, falla:9, celebra:9 }, CMG_FPS = { idle:5, camina:8, canta:6, ojos:6, falla:9, celebra:6 }, CMG = {};
 Object.keys(CMG_FR).forEach(k => { CMG[k] = new Image(); CMG[k].src = 'cmg_' + k + '.png'; });
 function drawCamiGala(x, y, o={}){
   const k = CMG[o.anim] ? o.anim : 'idle', img = CMG[k];
@@ -462,8 +462,8 @@ function drawChechoSprite(x, y, o={}){
 }
 
 // V2: animaciones de PixelLab para Maito
-const MAI_FR = { beisbol:9, camina:6, caras:9, celebra:9, toca:9, enredado:9, falla:9, habla:9, idle:8, pedales:9, rie:9, sin_gorra:9, triste:9, corre:9, inmovilizado:9, rolas:9, acostado:9, tocando:9, idle_beisbol:8, cowork:8, corre_sin:8 , anima_dave:9 , cuenta_chiste:9, rie_chiste:9, toca_final:9, celular:9, sorpresa:9, noticias:9 };
-const MAI_FPS = { beisbol:10, camina:8, caras:5, celebra:8, toca:10, enredado:6, falla:7, habla:7, idle:5, pedales:7, rie:8, sin_gorra:10, triste:3, corre:11, inmovilizado:8, rolas:8, acostado:6, tocando:10, idle_beisbol:5, cowork:5, corre_sin:11 , anima_dave:7 , cuenta_chiste:7, rie_chiste:9, toca_final:9, celular:7, sorpresa:8, noticias:7 };
+const MAI_FR = { persigue:8, rie_jefe:9, corre_jefe:8, celebra_jefe:9, beisbol:9, camina:6, caras:9, celebra:9, toca:9, enredado:9, falla:9, habla:9, idle:8, pedales:9, rie:9, sin_gorra:9, triste:9, corre:9, inmovilizado:9, rolas:9, acostado:9, tocando:9, idle_beisbol:8, cowork:8, corre_sin:8 , anima_dave:9 , cuenta_chiste:9, rie_chiste:9, toca_final:9, celular:9, sorpresa:9, noticias:9 };
+const MAI_FPS = { persigue:12, rie_jefe:6, corre_jefe:12, celebra_jefe:6, beisbol:10, camina:8, caras:5, celebra:8, toca:10, enredado:6, falla:7, habla:7, idle:5, pedales:7, rie:8, sin_gorra:10, triste:3, corre:11, inmovilizado:8, rolas:8, acostado:6, tocando:10, idle_beisbol:5, cowork:5, corre_sin:11 , anima_dave:7 , cuenta_chiste:7, rie_chiste:9, toca_final:9, celular:7, sorpresa:8, noticias:7 };
 const MAI = {}; for (const k in MAI_FR){ MAI[k] = new Image(); MAI[k].src = 'mai_' + k + '.png'; }
 function maitoAnim(o){
   if (o.anim) return o.anim;
